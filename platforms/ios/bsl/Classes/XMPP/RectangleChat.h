@@ -27,6 +27,7 @@ typedef enum {
 @property(nonatomic,strong) NSDate*  updateDate;
 @property(nonatomic,strong) NSNumber* noReadMsgNumber;
 @property(nonatomic,strong) NSString* name;
+@property (nonatomic,strong) NSNumber* isQuit;
 
 
 @end

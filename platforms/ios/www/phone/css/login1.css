@@ -1,0 +1,150 @@
+body{
+	height: 100%;
+	width: 100%;
+	overflow: hidden;
+	text-align: center;
+	padding: 0px 0px ;
+	margin: 0px;
+	background: #f6f6f6;
+}
+.login_content{
+	height: 50%;
+	width: 100%;
+	/*padding: 20px 15px 0px 15px;*/
+	text-align: center;
+	margin-left:0 auto;
+	margin-right: 0 auto;
+	
+}
+.title{
+	color: #2e77c7;
+	width: 100%;
+	text-align: center;
+	font-weight: bold;
+	font-size: 1.6em;
+	padding-top: 10%;
+	padding-bottom: 10%;
+}
+
+.user_content{
+	position: relative;
+	z-index: 3;
+	margin-left: 20px;
+	margin-right: 20px;
+	border: 2px solid #d7d7d7;
+	border-radius:10px;
+	-moz-border-radius:10px;
+	-webkit-border-radius:10px;
+	/*padding:10px;*/
+	padding: 10px 0px;
+	background: #ffffff;
+
+}
+.username_content,.password_content{
+	position: relative;
+	display: block;
+	height: 40px;
+	width: 100%;
+}
+.password_content{
+	margin-top: 7px;
+	height: 32px;
+}
+.username_content div , .password_content div{
+	display: inline;
+	float: left;
+	height: 32px;
+	width: 15%;
+	border-right: 1px solid #d7d7d7;
+	text-align: left;
+	margin-left: 10px;
+}
+.username_content div img , .password_content div img{
+	width: 28px;
+	height: 28px;
+}
+.username_content input , .password_content input{
+	float: left;
+	margin-left: 2%;
+	width: 72%;
+	height: 28px;
+	border: 0px;
+	outline: none;
+	color: #adadad;
+	font-size: 1em;
+	font-weight: bold;
+	/*border: 1px solid red;*/
+}
+.divide{
+	display: block;
+	height: 2px;
+	width: 100%;
+	background: #d7d7d7;
+}
+.remember_content{
+	/*background: red;*/
+	position: relative;
+	z-index: 3;
+	width: 100%;
+	padding-top: 10px;
+	height: 30px;
+}
+.remember_content .rememberMe{
+	position: relative;
+	display: inline;
+	width: 200px;
+	text-align: left;
+	height: 20px;
+}
+.remember_content .rememberMe input{
+	float: left;
+	position: relative;
+	left: 20px;
+
+}
+.remember_content .rememberMe span{
+	display: inline;
+	width: 150px;
+	position: relative;
+	top: 25px;
+	left: 20px;
+}
+
+.forget_content{
+	float: right;
+	margin-right: 40px;
+}
+
+.login_btn_content{
+	/*background: green;*/
+	position: relative;
+	z-index: 2;
+	width: 100%;
+	height: 60px;
+
+}
+#login_btn{
+	background:#0da220;
+	width: 80%;
+	height: 48px;
+	border: 0px;
+	border-radius:10px;
+	-moz-border-radius:10px;
+	-webkit-border-radius:10px;
+	margin-left: auto;
+	margin-right: auto;
+}
+.bottom_content{
+	/*background: blue;*/
+	z-index: 0;
+	overflow: hidden;
+	width: 100%;
+	height: 40%;
+	position: absolute;
+	bottom: 0px;
+}
+.bottom_content img{
+	padding-top: 20%;
+	width: 100%;
+	height: 70%;
+}

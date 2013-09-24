@@ -9,18 +9,26 @@
 #import <Foundation/Foundation.h>
 @class FormDataRequest;
 @interface ChatLogic : NSObject{
-    FormDataRequest * request;
+//    FormDataRequest * request;
+    
 }
 
--(void)sendMessage:(NSString* )content chatWithUser:(NSString*)chatWithUser name:(NSString*)name;
-
--(void)sendfile:(NSString* )content path:(NSString*)path chatWithUser:(NSString*)chatWithUser name:(NSString*)name;
+@property(nonatomic,strong) NSString* roomJID;
 
 
--(void)sendVoice:(NSString* )content urlVoiceFile:(NSURL*)urlVoiceFile chatWithUser:(NSString*)chatWithUser name:(NSString*)name;
+-(void)sendNotificationMessage:(NSString* )content messageId:(NSString*)messageId isGroup:(BOOL)isGroup name:(NSString*)name onlyUpdateChat:(BOOL)onlyUpdateChat;
+
+-(BOOL)sendMessage:(NSString* )content messageId:(NSString*)messageId isGroup:(BOOL)isGroup name:(NSString*)name;
+
+-(BOOL)sendfile:(NSString* )content path:(NSString*)path messageId:(NSString*)messageId isGroup:(BOOL)isGroup name:(NSString*)name;
 
 
--(void)uploadImageToServer:(UIImage*)image finish:(void (^)(NSString* id,NSString* path))finish;
+-(BOOL)sendVoice:(NSString* )content urlVoiceFile:(NSURL*)urlVoiceFile messageId:(NSString*)messageId isGroup:(BOOL)isGroup name:(NSString*)name;
+
+-(BOOL)sendRoomQuitAction:(NSString*)messageId;
+
+
+-(BOOL)uploadImageToServer:(UIImage*)image finish:(void (^)(NSString* id,NSString* path))finish;
 
 
 -(BOOL)isInFaviorContacts:(NSString*)chatWithUser;

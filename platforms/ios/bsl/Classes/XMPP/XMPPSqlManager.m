@@ -38,7 +38,30 @@ sqlite3 * database;
 
 
 +(int)getMessageCount{
+    int number=0;
+
+    @autoreleasepool {
+        NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
+        // Edit the entity name as appropriate.
+        NSEntityDescription *entity = [NSEntityDescription entityForName:@"RectangleChat" inManagedObjectContext:[ShareAppDelegate xmpp].managedObjectContext];
+        [fetchRequest setEntity:entity];
+        //排序
+        NSSortDescriptor*sortDescriptor1 = [[NSSortDescriptor alloc] initWithKey:@"updateDate"ascending:NO];
+        NSArray *sortDescriptors = [[NSArray alloc] initWithObjects:sortDescriptor1,nil];
+        [fetchRequest setSortDescriptors:sortDescriptors];
+        
+        NSFetchedResultsController* fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:[ShareAppDelegate xmpp].managedObjectContext sectionNameKeyPath:nil cacheName:@"rectangleTalk"];
+        
+        [fetchedResultsController performFetch:nil];
+        NSArray *contentArray = [fetchedResultsController fetchedObjects];
+        for(RectangleChat* obj in contentArray){
+            number+=[obj.noReadMsgNumber intValue];
+        }
+    }
+
+    return number;
     
+    /*
     if(!database){
         [self openDataBase];
     }
@@ -57,6 +80,7 @@ sqlite3 * database;
     }
     
     return count;
+     */
 }
 
 +(int)getMEssageCOuntFromGroup:(NSString *)groupName{

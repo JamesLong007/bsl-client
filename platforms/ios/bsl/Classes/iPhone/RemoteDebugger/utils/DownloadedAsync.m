@@ -88,7 +88,6 @@
             fclose(fp);
             fp=nil;
         }
-        [httpRequest setFailedBlock:nil];
         httpRequest=nil;
         [self unZipOrFinish];
         
@@ -100,7 +99,6 @@
             fp=nil;
         }
         NSError* error=httpRequest.error;
-        [httpRequest setCompletionBlock:nil];
         httpRequest=nil;
 
         NSLog(@"%@",error);

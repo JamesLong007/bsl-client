@@ -23,6 +23,9 @@
 @interface ContactListView : UIView{
     UISearchBar* searchBar;
     TouchTableView* tableView;
+    
+    NSTimer* laterReloadTimer;
+
 }
 
 @property(nonatomic,weak) id<ContactListViewDelegate> delegate;

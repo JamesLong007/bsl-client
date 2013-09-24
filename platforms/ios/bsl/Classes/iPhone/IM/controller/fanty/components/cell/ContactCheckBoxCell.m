@@ -44,6 +44,7 @@
         
         nicknameLabel=[[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(imageView.frame)+9.0f, 0.0f, 300.0f-CGRectGetMaxX(imageView.frame)-9.0f, CELL_HEIGHT)];
         nicknameLabel.numberOfLines=1;
+        nicknameLabel.backgroundColor=[UIColor clearColor];
         nicknameLabel.font=[UIFont fontWithName:@"Helvetica" size:16.0f];
         nicknameLabel.textColor=[UIColor blackColor];
 
@@ -58,6 +59,15 @@
         checkboxImageView.alpha=0.0f;
     }
     return self;
+}
+
+-(void)layoutSubviews{
+    [super layoutSubviews];
+    
+    CGRect rect=lineView.frame;
+    rect.size.width=self.frame.size.width;
+    lineView.frame=rect;
+
 }
 
 -(void)headerUrl:(NSString*)headerUrl nickname:(NSString*)nickname{

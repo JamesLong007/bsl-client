@@ -24,10 +24,14 @@
     return  self;
 }
 
+-(void)dealloc{
+    NSLog(@"it is dealloc");
+}
 
 -(void)cancel{
     [self setCompletionBlock:nil];
     [self setFailedBlock:nil];
+    [super cancel];
 }
 
 @end
@@ -44,10 +48,14 @@
     return self;
 }
 
+-(void)dealloc{
+    NSLog(@"it is dealloc");
+}
 
 -(void)cancel{
     [self setCompletionBlock:nil];
     [self setFailedBlock:nil];
+    [super cancel];
 }
 
 

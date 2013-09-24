@@ -12,6 +12,7 @@
 
 @protocol EmoctionPanelDelegate <NSObject>
 
+-(void)sendEmoction:(EmoctionPanel*)emoction;
 -(void)addEmoction:(EmoctionPanel*)emoction text:(NSString*)text;
 
 -(void)deleteEmoction:(EmoctionPanel*)emoction;
@@ -22,6 +23,8 @@
     SwipeView* swipeView;
     UIPageControl* pager;    
     EmoctionPanel* emoctionPanel;
+    
+    UIButton* confirmButton;
 }
 
 - (id)initWithFrame:(CGRect)frame emoctionList:(NSDictionary*)__emoctionList;

@@ -58,14 +58,14 @@
 +(void)requestAnnouncement:(NSString *)announcementId{
     
     HTTPRequest *request = [HTTPRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@%@",kRequestAnnouncementUrl,announcementId]]];
-    
+    __block HTTPRequest*  __request=request;
     [request setRequestMethod:@"GET"];
     
     [request setCompletionBlock:^{
         
-        NSData *data = [request responseData];
+        NSData *data = [__request responseData];
         
-        NSString *reponseString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+       // NSString *reponseString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
         
         NSError *error = nil;
         
@@ -119,7 +119,7 @@
         
         NSData *data = [request responseData];
         
-        NSString *reponseString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+       // NSString *reponseString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
         
         NSError *error = nil;
         

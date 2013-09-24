@@ -27,9 +27,9 @@
     BOOL isFirst;
 }
 @property(nonatomic,assign)UIViewController *presentingViewController;
-@property (nonatomic,retain)  UIViewController * detailController;
-@property (nonatomic,retain)  UIViewController * mainController;
-@property (nonatomic,retain)  UIView* detailView;
+@property (nonatomic,strong)  UIViewController * detailController;
+@property (nonatomic,strong)  UIViewController * mainController;
+@property (nonatomic,strong)  UIView* detailView;
 @property (copy, nonatomic) NSString *selectedModule;
 
 @end

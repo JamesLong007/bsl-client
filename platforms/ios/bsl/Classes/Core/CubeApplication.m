@@ -500,7 +500,6 @@ NSString *const CubeTokenTimeOutNotification = @"CubeTokenTimeOutNotification";
     if (([Reachability reachabilityForInternetConnection].currentReachabilityStatus != NotReachable) &&
         ([Reachability reachabilityForLocalWiFi].currentReachabilityStatus != NotReachable)) {
             if(!syncing){
-                NSLog(@"url: %@", aURL);
             [[AFAppDotNetAPIClient sharedClient]getPath:aURL parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 syncing = false;
                 int statusCode =operation.response.statusCode;

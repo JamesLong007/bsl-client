@@ -72,6 +72,7 @@
             [SVProgressHUD showWithStatus:@"正在登录..."  maskType:SVProgressHUDMaskTypeGradient ];
         }
         FormDataRequest* request = [FormDataRequest requestWithURL:[NSURL URLWithString:[ServerAPI urlForLogin]]];
+        __block FormDataRequest*  __request=request;
 
         [request setPostValue:kAPPKey forKey:@"appKey"];
         [request setPostValue:userName forKey:@"username"];
@@ -81,7 +82,6 @@
         [request setPostValue:[[NSBundle mainBundle]bundleIdentifier] forKey:@"appId"];
 
         [request setFailedBlock:^{
-            [request setCompletionBlock:nil];
             if([SVProgressHUD isVisible]){
                 [SVProgressHUD showErrorWithStatus:@"连接服务器失败！"];
             }
@@ -90,16 +90,18 @@
             [json setValue:@"连接服务器失败！" forKey:@"message"];
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR  messageAsString:json.JSONString];
             [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+            [__request cancel];
             
         }];
         
         [request setCompletionBlock:^{
-            [request setFailedBlock:nil];
-            if([request responseStatusCode] == 404){
+            if([__request responseStatusCode] == 404){
                 [SVProgressHUD showErrorWithStatus:@"连接服务器失败！" ];
+
+                [__request cancel];
                 return ;
             }
-            NSData* data = [request responseData];
+            NSData* data = [__request responseData];
             NSDictionary* messageDictionary = [data objectFromJSONData];
             NSString* message = [messageDictionary objectForKey:@"message"];
             if (message !=nil) {
@@ -111,8 +113,6 @@
                 UIAlertView* alert = [[UIAlertView alloc]initWithTitle:@"登录失败" message:message delegate:self cancelButtonTitle:@"确定" otherButtonTitles: nil];
                 [alert show];
             }else{
-            NSData* data = [request responseData];
-            NSDictionary* messageDictionary = [data objectFromJSONData];
             NSString* messageAlert =   [messageDictionary objectForKey:@"message"];
             NSNumber* number =  [messageDictionary objectForKey:@"result"];
             if ([number boolValue]) {
@@ -154,9 +154,11 @@
                 
                 CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR  messageAsString:json.JSONString];
                 [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-                return;
-            
+
+                
             }
+            [__request cancel];
+
                 
             }
         }];

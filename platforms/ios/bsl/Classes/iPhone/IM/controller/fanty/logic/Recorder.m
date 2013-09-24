@@ -110,7 +110,6 @@ typedef enum{
     [audioRecorder record];
     audioRecorder.meteringEnabled = YES;
     
-    
     [self observerAudioPower];
     
 }
@@ -120,7 +119,7 @@ typedef enum{
     [recordTimer invalidate];
     NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
     recordTimer = [NSTimer timerWithTimeInterval:0.2 target:self selector:@selector(refreshAudioPower) userInfo:nil repeats:YES];
-    [runLoop addTimer:recordTimer forMode:NSDefaultRunLoopMode];
+    [runLoop addTimer:recordTimer forMode:NSRunLoopCommonModes];
 }
 
 -(void)refreshAudioPower{
@@ -141,6 +140,10 @@ typedef enum{
     }
     if([self.delegate respondsToSelector:@selector(refreshAudioPower:level:)])
         [self.delegate refreshAudioPower:self level:condition];
+    
+    if(self.addInterval>=60){
+        
+    }
 }
 
 
@@ -163,7 +166,6 @@ typedef enum{
     
     NSFileManager* fileManeger = [NSFileManager defaultManager];
     [fileManeger removeItemAtURL:recordFile error:nil];
-    
     recordFile=nil;
 }
 

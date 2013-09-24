@@ -54,14 +54,7 @@
         fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:managedObjectContext sectionNameKeyPath:nil cacheName:@"faviorUserInfo"];
         fetchedResultsController.delegate = self;
         
-        
-        
-        NSError *error = nil;
-        if (![fetchedResultsController performFetch:&error]) {
-            NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
-            abort();
-        }
-        
+        [fetchedResultsController performFetch:nil];
         NSArray *contentArray = [fetchedResultsController fetchedObjects];
         for(id obj in contentArray){
             [list addObject:obj];
@@ -101,6 +94,10 @@
 
 
 #pragma mark tableview delegate  datasource
+
+-(NSString*)tableView:(UITableView*)tableView titleForDeleteConfirmationButtonForRowAtIndexPath:(NSIndexPath*)indexpath{
+    return @"删除";
+}
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
     
@@ -199,7 +196,9 @@
         }
         [laterReloadTimer invalidate];
         laterReloadTimer=nil;
-        [self deleteRowsAtIndexPaths:[NSArray arrayWithObjects:[NSIndexPath indexPathForRow:index inSection:0], nil] withRowAnimation:UITableViewRowAnimationFade];        
+        if(isDel){
+            [self deleteRowsAtIndexPaths:[NSArray arrayWithObjects:[NSIndexPath indexPathForRow:index inSection:0], nil] withRowAnimation:UITableViewRowAnimationFade];
+        }
     }
     else if(type==NSFetchedResultsChangeMove){
         

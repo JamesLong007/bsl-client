@@ -9,6 +9,7 @@
 #import "XMPPPustActor.h"
 #import "UIDevice+IdentifierAddition.h"
 #import "MessageRecord.h"
+#import "HTTPRequest.h"
 
 @implementation XMPPPustActor
 @synthesize xmppStream;

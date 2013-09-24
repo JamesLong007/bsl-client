@@ -9,10 +9,10 @@
 #import "UpdateChecker.h"
 #import "JSONKit.h"
 #import "ServerAPI.h"
+#import "HTTPRequest.h"
 
 @implementation UpdateChecker
 @synthesize delegate;
-@synthesize request;
 //@synthesize newApp;
 @synthesize downloadUrl;
 
@@ -34,7 +34,7 @@
 
 -(void)check
 {
-    
+    [request cancel];
     NSString* updateUrl = [ServerAPI urlForAppUpdate];
     updateUrl =  [updateUrl stringByAppendingString:[NSString stringWithFormat:@"&appKey=%@",kAPPKey]];
     request = [HTTPRequest requestWithURL:[NSURL URLWithString:updateUrl]];
@@ -42,8 +42,7 @@
     [request startAsynchronous];
 }
 
--(void)requestFinished:(ASIHTTPRequest*)ar
-{
+-(void)requestFinished:(ASIHTTPRequest*)ar{
     NSString *body =[[NSString alloc] initWithData:[ar responseData] encoding:NSUTF8StringEncoding];
     id json = [body objectFromJSONString];
     if (json == nil) {
@@ -73,18 +72,20 @@
             [delegate updateUnavailable];
         }
     }
+    request=nil;
+
 }
 
--(void)requestFailed:(ASIHTTPRequest*)ar
-{
+-(void)requestFailed:(ASIHTTPRequest*)ar{
+    request=nil;
+
     NSLog(@"更新出错:%@", [ar error]);
     if (delegate) {
         [delegate updateError:[ar error]];
     }
 }
 
-- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
-{
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
     if (buttonIndex == 1) {
         NSString *urlString = [NSString stringWithFormat:@"itms-services://?action=download-manifest&url=%@", [NSString stringWithFormat:@"%@%@appKey%@%@",self.downloadUrl,@"%3F",@"%3D",kAPPKey]];
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:urlString]];

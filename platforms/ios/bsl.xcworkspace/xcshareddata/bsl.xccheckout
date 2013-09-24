@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>6EBE6BF5-743D-4191-AB8D-580160EEC46B</string>
+	<key>IDESourceControlProjectName</key>
+	<string>bsl</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>68EEC90E-6E21-454B-870B-F539FD90C01E</key>
+		<string>https://github.com/Fanty/bsl-client.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>platforms/ios/bsl.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>68EEC90E-6E21-454B-870B-F539FD90C01E</key>
+		<string>../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/Fanty/bsl-client.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>68EEC90E-6E21-454B-870B-F539FD90C01E</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>68EEC90E-6E21-454B-870B-F539FD90C01E</string>
+			<key>IDESourceControlWCCName</key>
+			<string>bsl-client</string>
+		</dict>
+	</array>
+</dict>
+</plist>
