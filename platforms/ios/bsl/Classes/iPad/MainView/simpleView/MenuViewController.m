@@ -139,7 +139,7 @@
 #pragma mark Table view delegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    DataViewController *dataViewController = [[DataViewController alloc] initWithFrame:CGRectMake(0, 0, 500, self.view.frame.size.height)];
+    //DataViewController *dataViewController = [[DataViewController alloc] initWithFrame:CGRectMake(0, 0, 500, self.view.frame.size.height)];
 	//[[StackScrollViewAppDelegate instance].rootViewController.stackScrollViewController addViewInSlider:dataViewController invokeByController:self isStackStartView:TRUE];
 }
 

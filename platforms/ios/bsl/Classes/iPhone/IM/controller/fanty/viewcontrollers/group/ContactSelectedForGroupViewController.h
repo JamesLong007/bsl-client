@@ -10,6 +10,15 @@
 @class ImageUploaded;
 @class TouchTableView;
 @class CustomNavigationBar;
+@class ContactSelectedForGroupViewController;
+@class FormDataRequest;
+
+@protocol ContactSelectedForGroupViewControllerDelegate <NSObject>
+
+-(void)dismiss:(ContactSelectedForGroupViewController*)controller selectedInfo:(NSArray*)selectedInfo;
+
+@end
+
 @interface ContactSelectedForGroupViewController : UIViewController{
     NSArray *sortedKeys;
     NSDictionary* showDicts;
@@ -22,8 +31,17 @@
 
     UISearchBar* searchBar;
     NSMutableArray* selectedUserInfos;
+    
+    NSTimer* timeOutTimer;
+    
+    FormDataRequest* request;
+    
+    float maxHeight;
 }
-
+@property(nonatomic,weak) id<ContactSelectedForGroupViewControllerDelegate> delegate;
+@property(nonatomic,strong) NSString* tempNewjid;
 @property(nonatomic,strong) NSDictionary* dicts;
+@property(nonatomic,strong) NSString* groupName;
+@property(nonatomic,strong) NSString*  existsGroupJid;
 
 @end

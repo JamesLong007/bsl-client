@@ -19,6 +19,7 @@ extern const BOOL kEnablePushNotification;
 extern const NSString* const kAPPKey;
 
 extern NSString* const kXMPPHost;
+extern NSString* const kXMPPGroupHost;
 extern NSString* const kXMPPDomin;
 
 extern NSString* const kXMPPPushHost ;

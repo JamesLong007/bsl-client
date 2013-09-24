@@ -204,6 +204,8 @@
     [self cleanupRequest];
     
     HTTPRequest *request = [[HTTPRequest alloc] initWithURL:url];
+    __block HTTPRequest*  __request=request;
+
     [request setTimeOutSeconds:20];
 
     [request setStartedBlock:^{
@@ -213,8 +215,8 @@
 
     }];
     [request setCompletionBlock:^{
-        if ([request responseStatusCode] / 100 != 2) {
-            NSLog(@"图片下载失败，响应码：%d",[request responseStatusCode]);
+        if ([__request responseStatusCode] / 100 != 2) {
+            NSLog(@"图片下载失败，响应码：%d",[__request responseStatusCode]);
             [self stopLoading];
             [self broken];
             
@@ -222,10 +224,10 @@
             return;
         }
         
-        [[Cache instance] setData:[request responseData] forKey:[[request originalURL] absoluteString]];
+        [[Cache instance] setData:[__request responseData] forKey:[[__request originalURL] absoluteString]];
         
         [self stopLoading];
-        [self loadImageFromData:[request responseData] animated:YES];
+        [self loadImageFromData:[__request responseData] animated:YES];
         
         [self cleanupRequest];
 

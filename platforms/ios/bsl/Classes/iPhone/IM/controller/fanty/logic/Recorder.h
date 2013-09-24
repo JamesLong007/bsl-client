@@ -30,7 +30,7 @@
 }
 
 @property(nonatomic,assign) float addInterval;
-@property(nonatomic,weak) id<RecorderDelegate> delegate;
+@property(nonatomic,assign) id<RecorderDelegate> delegate;
 @property(nonatomic,readonly) NSURL*  recordFile;
 
 

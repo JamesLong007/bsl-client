@@ -16,6 +16,7 @@
 #import "NSFileManager+Extra.h"
 #import "ServerAPI.h"
 #import "FMDBManager.h"
+#import "HTTPRequest.h"
 #import "AutoDownLoadRecord.h"
 #import "OperateLog.h"
 
@@ -453,7 +454,8 @@
     //退出登录alert
     if (alertView.tag == 1 && buttonIndex== 0 ) {
         NSUserDefaults* userDefaults = [NSUserDefaults standardUserDefaults];
-        HTTPRequest * request = [[HTTPRequest alloc]initWithURL:[NSURL URLWithString:[ServerAPI urlForlogout:[userDefaults objectForKey:@"token"]]]];
+        HTTPRequest * request = [HTTPRequest requestWithURL:[NSURL URLWithString:[ServerAPI urlForlogout:[userDefaults objectForKey:@"token"]]]];
+        
         [request startAsynchronous];
         [self logout];
     }

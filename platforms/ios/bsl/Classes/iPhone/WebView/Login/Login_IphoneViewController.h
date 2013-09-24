@@ -7,7 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
-
-@interface Login_IphoneViewController : UIViewController
+@class CubeWebViewController;
+@interface Login_IphoneViewController : UIViewController{
+    CubeWebViewController *aCubeWebViewController ;
+}
 
 @end

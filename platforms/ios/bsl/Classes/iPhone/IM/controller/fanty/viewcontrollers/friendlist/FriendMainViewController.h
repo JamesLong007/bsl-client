@@ -13,6 +13,7 @@
 @class ContactListView;
 @class FaviorContactView;
 @class CustomNavigationBar;
+@class NumberView;
 @interface FriendMainViewController : UIViewController{
     HeadTabView* tabView;
     
@@ -23,6 +24,8 @@
 
     UIButton* fliterBg;
 
+    NumberView* numberView;
+    NSFetchedResultsController* fetchedResultsController;
 }
 
 

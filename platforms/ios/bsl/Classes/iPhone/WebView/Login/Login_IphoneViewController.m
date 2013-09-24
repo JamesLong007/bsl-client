@@ -32,7 +32,7 @@
 {
     [super viewDidLoad];
 
-     CubeWebViewController *aCubeWebViewController  = [[CubeWebViewController alloc] init];
+    aCubeWebViewController  = [[CubeWebViewController alloc] init];
     //aCubeWebViewController.title=module.name;
     //加载本地的登录界面页
     //设置启动页面

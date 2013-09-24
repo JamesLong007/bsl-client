@@ -14,6 +14,7 @@
 @interface EmoctionPanel()<SwipeViewDataSource,SwipeViewDelegate>
 -(void)showEmotion:(MySelfView*)sender;
 -(void)deleteEmotion;
+-(void)sendEmotion;
 @end
 
 @implementation EmoctionPanel
@@ -45,9 +46,24 @@
         pager.backgroundColor= [UIColor grayColor];
         [pager setNumberOfPages:count];
         [pager setCurrentPage:0];
+        
+        
+        confirmButton=[UIButton buttonWithType:UIButtonTypeCustom];
+        [confirmButton addTarget:self action:@selector(sendEmotion) forControlEvents:UIControlEventTouchUpInside];
+        UIImage* btnSelImg=[UIImage imageNamed:@"RightBarButtonBkg_Blue.png"];
+        btnSelImg=[btnSelImg stretchableImageWithLeftCapWidth:btnSelImg.size.width*0.5f topCapHeight:btnSelImg.size.height*0.5f];
+        [confirmButton setTitle:@"发送" forState:UIControlStateNormal];
+        [confirmButton setBackgroundImage:btnSelImg forState:UIControlStateNormal];
+        [confirmButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [confirmButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        confirmButton.titleLabel.font=[UIFont fontWithName:@"Helvetica" size:13.0f];
+        confirmButton.frame=CGRectMake(frame.size.width-64.0f-8.0f, frame.size.height-btnSelImg.size.height-25.0f, 64.0f, btnSelImg.size.height);
+
+        
         [self addSubview:pager];
         [self addSubview:swipeView];
 
+        [self addSubview:confirmButton];
     }
     return self;
 }
@@ -158,6 +174,11 @@
         inputView.text = [text substringWithRange:NSMakeRange(0, text.length -1)];
     }
      */
+}
+
+-(void)sendEmotion{
+    if([self.delegate respondsToSelector:@selector(sendEmoction:)])
+        [self.delegate sendEmoction:self ];
 }
 
 @end

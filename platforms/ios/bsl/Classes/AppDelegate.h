@@ -26,27 +26,19 @@
 //
 
 #import <UIKit/UIKit.h>
-
-#import "AnimateNavigationController.h"
-
 #import <Cordova/CDVViewController.h>
+
 #import "XMPPIMActor.h"
 
 #import "UpdateChecker.h"
 
-#import "RootViewController.h"
 #import "DownQueueActor.h"
 
 @class DDMenuController;
 @class XMPPIMActor;
 @class XMPPPustActor;
 
-
-
-@interface AppDelegate : NSObject <UIApplicationDelegate,XMPPIMActorDelegate,UIAlertViewDelegate>{
-   
-}
-
+@interface AppDelegate : NSObject
 // invoke string is passed to your app on launch, this is only valid if you
 // edit cube-ios-Info.plist to add a protocol
 // a simple tutorial can be found here :
@@ -54,18 +46,19 @@
 
 @property (nonatomic, strong) IBOutlet UIWindow* window;
 @property(nonatomic, strong) UIViewController* mainViewController;
-@property (nonatomic, strong) IBOutlet CDVViewController* viewController;
-//@property (retain, nonatomic) IBOutlet AnimateNavigationController *navControl;
+@property(nonatomic,strong) UINavigationController* navControl;
+//@property (nonatomic, strong) IBOutlet CDVViewController* viewController;
 
-//@property (nonatomic, strong) DDMenuController* ddmenuController;
 
 @property (nonatomic,strong)XMPPPustActor *xmppPustActor;
 @property (nonatomic,strong)XMPPIMActor *xmpp;
-@property (nonatomic,assign) bool isBackLunch;
 
 @property (nonatomic,strong)DownQueueActor *downQueueActor;
 //记录各个模块消息收到的时间
 @property (nonatomic,strong) NSMutableDictionary *moduleReceiveMsg;
+
+@property(nonatomic,strong) UpdateChecker *uc;
+
 
 -(void)didLogin;
 -(void)showLoginView;

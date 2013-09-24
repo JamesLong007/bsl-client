@@ -29,14 +29,21 @@
         // Custom initialization
         [self.navigationItem setTitle:@"公告"];
         //覆盖屏蔽右边控制
-        UIButton *navRightButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 7, 43, 30)];
-        [navRightButton setBackgroundImage:[UIImage imageNamed:@"nav_add_btn@2x.png"] forState:UIControlStateNormal];
-        [navRightButton setBackgroundImage:[UIImage imageNamed:@"nav_add_btn_active@2x.png"] forState:UIControlStateSelected];
-        [navRightButton setTitle:@"编辑" forState:UIControlStateNormal];
-        [[navRightButton titleLabel] setFont:[UIFont systemFontOfSize:13]];
-        [navRightButton addTarget:self action:@selector(edit) forControlEvents:UIControlEventTouchUpInside];
         
-        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:navRightButton];
+        if (UI_USER_INTERFACE_IDIOM() ==  UIUserInterfaceIdiomPad) {
+            self.navigationItem.rightBarButtonItem=[[UIBarButtonItem alloc] initWithTitle:@"编辑" style:UIBarButtonItemStyleBordered target:self action:@selector(edit)];
+        }
+        else{
+            UIButton *navRightButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 7, 43, 30)];
+            [navRightButton setBackgroundImage:[UIImage imageNamed:@"nav_add_btn.png"] forState:UIControlStateNormal];
+            [navRightButton setBackgroundImage:[UIImage imageNamed:@"nav_add_btn_active.png"] forState:UIControlStateSelected];
+            [navRightButton setTitle:@"编辑" forState:UIControlStateNormal];
+            [[navRightButton titleLabel] setFont:[UIFont systemFontOfSize:13]];
+            [navRightButton addTarget:self action:@selector(edit) forControlEvents:UIControlEventTouchUpInside];
+            
+            self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:navRightButton];
+            
+        }
         
         //[self.navigationItem setRightBarButtonItem:rightItem animated:YES];
         
@@ -190,11 +197,12 @@
     
     CGFloat oneLineHeight = [announcement.content sizeWithFont:cell.contentLabel.font
                                                       forWidth:320-40
-                                                 lineBreakMode:UILineBreakModeTailTruncation].height;
+                                                 lineBreakMode:NSLineBreakByTruncatingTail].height;
+    
     //多行高度
     CGFloat multiLineHeight = [announcement.content sizeWithFont:cell.contentLabel.font
                                                constrainedToSize:CGSizeMake(320-40, 99999)
-                                                   lineBreakMode:UILineBreakModeTailTruncation].height;
+                                                   lineBreakMode:NSLineBreakByTruncatingTail].height;
     
     //重设caption高度
     CGFloat finalCaptionHeight = (cell.contentLabel.numberOfLines == 1) ? oneLineHeight : multiLineHeight;

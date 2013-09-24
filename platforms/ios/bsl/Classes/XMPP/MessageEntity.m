@@ -10,18 +10,22 @@
 
 @implementation MessageEntity
 
+@dynamic uqID;
 @dynamic content;
+@dynamic messageId;
+@dynamic receiveUser;
 @dynamic flag_sended;
 @dynamic sendDate;
 @dynamic flag_readed;
 @dynamic sendUser;
-@dynamic receiver;
 @dynamic statue;
 @dynamic type;
 @dynamic fileId;
 
 @dynamic receiveDate;
 
+-(void)dealloc{
+}
 
 -(NSString*)name{
     if([self.sendUser length]>0){

@@ -8,7 +8,6 @@
 
 #import <Foundation/Foundation.h>
 #import "CubeApplication.h"
-#import "HTTPRequest.h"
 
 @protocol CheckUpdateDelegate <NSObject>
 @optional
@@ -18,9 +17,11 @@
 
 @end
 
-@interface UpdateChecker : NSObject <UIAlertViewDelegate>
+@interface UpdateChecker : NSObject <UIAlertViewDelegate>{
+    HTTPRequest* request;
+}
 @property(nonatomic,weak) id<CheckUpdateDelegate> delegate;
-@property(nonatomic,strong) HTTPRequest *request;
+
 //@property(nonatomic,retain, getter = theNewApp) CubeApplication *newApp;
 @property(nonatomic,strong) NSString *downloadUrl;
 

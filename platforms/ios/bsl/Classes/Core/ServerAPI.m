@@ -13,7 +13,6 @@
 @implementation ServerAPI
 
 +(NSString*)urlForAttachmentId:(NSString*)aid {
-//    return [kServerURLString stringByAppendingFormat:@"/storage/attachments/%@", aid];
     return [kServerURLString stringByAppendingFormat:@"/mam/api/mam/clients/files/%@/", aid];
 }
 

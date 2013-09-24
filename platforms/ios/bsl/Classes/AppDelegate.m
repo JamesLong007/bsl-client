@@ -25,6 +25,7 @@
 //  Copyright ___ORGANIZATIONNAME___ ___YEAR___. All rights reserved.
 //
 
+
 #import "AppDelegate.h"
 #import "MainViewController.h"
 
@@ -43,6 +44,7 @@
 #import "XMPPPustActor.h"
 #import "SVProgressHUD.h"
 #import "NSFileManager+Extra.h"
+#import "UpdateChecker.h"
 
 
 #import "Login_IpadViewController.h"
@@ -56,24 +58,24 @@
 void uncaughtExceptionHandler(NSException*exception){
     NSLog(@"CRASH: %@", exception);
     NSLog(@"Stack Trace: %@",[exception callStackSymbols]);
-    // Internal error reporting
+
 }
 
-@interface AppDelegate ()
+@interface AppDelegate ()<UIApplicationDelegate,XMPPIMActorDelegate,UIAlertViewDelegate>
 @property (assign,nonatomic) CFURLRef soundFileURLRef;
 @property (assign,nonatomic) SystemSoundID soundFileObject;
 
 @end
 @implementation AppDelegate
 
-@synthesize window, viewController;
+@synthesize window;
+@synthesize navControl;
+@synthesize uc;
 @synthesize xmpp;
 @synthesize xmppPustActor;
-@synthesize isBackLunch;
 @synthesize moduleReceiveMsg;
 @synthesize mainViewController;
-- (id)init
-{
+- (id)init{
     /** If you need to do any extra app-specific initialization, you can do it here
      *  -jm
      **/
@@ -87,7 +89,6 @@ void uncaughtExceptionHandler(NSException*exception){
     [NSURLCache setSharedURLCache:sharedCache];
     self = [super init];
     
-    isBackLunch =NO;
     return self;
 }
 
@@ -96,10 +97,8 @@ void uncaughtExceptionHandler(NSException*exception){
 /**
  * This is main kick off after the app inits, the views and Settings are setup here. (preferred - iOS4 and up)
  */
-- (BOOL)application:(UIApplication*)application didFinishLaunchingWithOptions:(NSDictionary*)launchOptions
-{
-    if (launchOptions)
-	{
+- (BOOL)application:(UIApplication*)application didFinishLaunchingWithOptions:(NSDictionary*)launchOptions{
+    if (launchOptions){
         NSDictionary* dictionary = [launchOptions objectForKey:UIApplicationLaunchOptionsRemoteNotificationKey];
         if (dictionary != nil)
 		{
@@ -111,9 +110,10 @@ void uncaughtExceptionHandler(NSException*exception){
     }
     NSSetUncaughtExceptionHandler(&uncaughtExceptionHandler);
     
-    isBackLunch =NO;
-    UpdateChecker *uc = [[UpdateChecker alloc] initWithDelegate:nil];
-    [uc check];
+    UpdateChecker *__uc = [[UpdateChecker alloc] initWithDelegate:nil];
+    self.uc=__uc;
+    __uc=nil;
+    [self.uc check];
     
     [self registerForRemoteNotification];
     [self referencePushSound];
@@ -135,7 +135,7 @@ void uncaughtExceptionHandler(NSException*exception){
 		NSLog(@"Cube-iOS launchOptions = %@", [url absoluteString]);
     }
     
-       
+
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
     self.window = [[UIWindow alloc] initWithFrame:screenBounds];
     
@@ -147,6 +147,13 @@ void uncaughtExceptionHandler(NSException*exception){
     //end------
     //异步加载push actor
     [[UIApplication sharedApplication] setStatusBarHidden:NO];
+    
+//    UINavigationController* nav=[[UINavigationController alloc] init];
+//    [nav setNavigationBarHidden:YES];
+//    self.navControl=nav;
+//    self.window.rootViewController=nav;
+    
+    
     [self showLoginView];
     [self.window makeKeyAndVisible];
     return YES;
@@ -157,9 +164,10 @@ void uncaughtExceptionHandler(NSException*exception){
 
 }
 
-
 -(void)showLoginView{
-    self.window.rootViewController = self.viewController;
+
+    //[navControl popToRootViewControllerAnimated:NO];
+
     //清楚浏览器缓存
     [[NSURLCache sharedURLCache] removeAllCachedResponses];
     
@@ -170,13 +178,20 @@ void uncaughtExceptionHandler(NSException*exception){
    
     [xmpp disConnect];
     
-        
-    if (UI_USER_INTERFACE_IDIOM() ==  UIUserInterfaceIdiomPhone)
-    {
-        self.window.rootViewController = [[Login_IphoneViewController alloc] init];
-    }else{
-        Login_IpadViewController* login_IpadViewController = [[Login_IpadViewController alloc]initWithNibName:@"Login_IpadViewController" bundle:nil];
-        self.window.rootViewController = login_IpadViewController;
+    if([navControl.viewControllers count]<1){
+        if (UI_USER_INTERFACE_IDIOM() ==  UIUserInterfaceIdiomPhone)
+        {
+            Login_IphoneViewController* controller=[[Login_IphoneViewController alloc] init];
+            self.window.rootViewController=controller;
+            //  [navControl pushViewController:controller animated:NO];
+            controller=nil;
+        }else{
+            Login_IpadViewController* controller = [[Login_IpadViewController alloc]initWithNibName:@"Login_IpadViewController" bundle:nil];
+            self.window.rootViewController=controller;
+
+            //[navControl pushViewController:controller animated:NO];
+            controller=nil;
+        }
     }
 
 }
@@ -200,7 +215,6 @@ void uncaughtExceptionHandler(NSException*exception){
     if([SVProgressHUD isVisible]){
         [SVProgressHUD dismiss];
     }
-    isBackLunch =YES;
     
 #if TARGET_IPHONE_SIMULATOR
     
@@ -219,11 +233,18 @@ void uncaughtExceptionHandler(NSException*exception){
 
 -(void)applicationWillEnterForeground:(UIApplication *)application{
     
+    
     if ([self.window.rootViewController class] == [LoginViewController class]) {
-        UpdateChecker *uc = [[UpdateChecker alloc] initWithDelegate:nil];
-        [uc check];
+        [self.uc check];
     }
-    isBackLunch =NO;
+     
+    
+    /*
+    if([navControl.visibleViewController isKindOfClass:[LoginViewController class]]){
+        [self.uc check];
+
+    }
+     */
 }
 
 
@@ -300,17 +321,10 @@ void uncaughtExceptionHandler(NSException*exception){
     
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:NSJSONReadingMutableContainers error:nil];
     
-    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+//    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
     
-#ifdef DEBUG
-    
-    HTTPRequest *request = [HTTPRequest requestWithURL:[NSURL URLWithString:kPushServerRegisterUrl]];
-    
-#else
     
     HTTPRequest *request = [HTTPRequest requestWithURL:[NSURL URLWithString:kPushServerRegisterUrl]];
-    
-#endif
     
     [request appendPostData:jsonData];
     [request setRequestMethod:@"PUT"];
@@ -336,8 +350,10 @@ void uncaughtExceptionHandler(NSException*exception){
     }
     
     // calls into javascript global function 'handleOpenURL'
-    NSString* jsString = [NSString stringWithFormat:@"handleOpenURL(\"%@\");", url];
-    [self.viewController.webView stringByEvaluatingJavaScriptFromString:jsString];
+    
+    //下面两句由fanty 注掉，看上去不似是用得着
+//    NSString* jsString = [NSString stringWithFormat:@"handleOpenURL(\"%@\");", url];
+//    [self.viewController.webView stringByEvaluatingJavaScriptFromString:jsString];
     
     // all plugins will get the notification, and their handlers will be called
     [[NSNotificationCenter defaultCenter] postNotification:[NSNotification notificationWithName:CDVPluginHandleOpenURLNotification object:url]];
@@ -354,8 +370,7 @@ void uncaughtExceptionHandler(NSException*exception){
     [[NSNotificationCenter defaultCenter] postNotificationName:CDVLocalNotification object:notification];
 }
 
-- (NSUInteger) application:(UIApplication *)application supportedInterfaceOrientationsForWindow:(UIWindow *)window
-{
+- (NSUInteger) application:(UIApplication *)application supportedInterfaceOrientationsForWindow:(UIWindow *)window{
     //iphone只支持竖屏显示
     if (UI_USER_INTERFACE_IDIOM() ==  UIUserInterfaceIdiomPhone) {
         return UIInterfaceOrientationMaskPortrait;
@@ -373,8 +388,7 @@ void uncaughtExceptionHandler(NSException*exception){
     [[NSURLCache sharedURLCache] removeAllCachedResponses];
 }
 
--(void)postOpreateLog
-{
+-(void)postOpreateLog{
     NSArray * array = [OperateLog findAllLog];
     if([array count]<1){
         [NSTimer timerWithTimeInterval:60 target:self selector:@selector(postOpreateLog) userInfo:nil repeats:NO];
@@ -404,17 +418,16 @@ void uncaughtExceptionHandler(NSException*exception){
     [dict setObject:array forKey:@"array"];
     [request setUserInfo:dict];
     
+    __block FormDataRequest*  __request=request;
     [request setFailedBlock:^{
         NSLog(@"失败");
-        [request setCompletionBlock:nil];
         
         [NSTimer timerWithTimeInterval:60 target:self selector:@selector(postOpreateLog) userInfo:nil repeats:NO];
     }];
     
     [request setCompletionBlock:^{
-        [request setFailedBlock:nil];
-        if([request responseStatusCode] == 200){
-            NSArray *array = [[request userInfo] valueForKey:@"array"];
+        if([__request responseStatusCode] == 200){
+            NSArray *array = [[__request userInfo] valueForKey:@"array"];
             for (OperateLog *log in array) {
                 [log remove];
             }
@@ -446,11 +459,14 @@ void uncaughtExceptionHandler(NSException*exception){
         [PushGetMessageInfo getPushMessageInfo];
     });
     NSLog(@"didLogin 3");
+    [navControl popToRootViewControllerAnimated:NO];
     if (UI_USER_INTERFACE_IDIOM() ==  UIUserInterfaceIdiomPhone)
     {
         //
-         UINavigationController *navControl =[[[NSBundle mainBundle] loadNibNamed:@"MainNewWindow" owner:self options:nil] objectAtIndex:0];
-        self.window.rootViewController = navControl;
+         UINavigationController *__navControl =[[[NSBundle mainBundle] loadNibNamed:@"MainNewWindow" owner:self options:nil] objectAtIndex:0];
+        self.window.rootViewController = __navControl;
+//        [navControl pushViewController:__navControl animated:NO];
+        __navControl=nil;
         //修改为HTML5界面
         if([SVProgressHUD isVisible]){
             [SVProgressHUD dismiss];
@@ -459,11 +475,13 @@ void uncaughtExceptionHandler(NSException*exception){
     }else{
          MainViewViewController * main = [[MainViewViewController alloc]initWithNibName:@"MainViewViewController" bundle:nil finish:^{
             self.window.rootViewController = self.mainViewController;
+//             [navControl pushViewController:self.mainViewController animated:NO];
             if([SVProgressHUD isVisible]){
                 [SVProgressHUD dismiss];
             }
         }];
         self.mainViewController=main;
+        main=nil;
     }
     NSLog(@"didLogin 4");
 }

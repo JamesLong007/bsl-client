@@ -26,7 +26,9 @@
 #import "XMPPRoom.h"
 #import "XMPPRoomCoreDataStorage.h"
 #import "XMPPMUC.h"
+#import "RoomService.h"
 
+@class GroupRoomUserEntity;
 
 @protocol XMPPIMActorDelegate <NSObject>
 
@@ -49,7 +51,7 @@
     XMPPvCardCoreDataStorage *xmppvCardStorage;
     
     XMPPMUC *xmppMUC;
-    
+
     NSString *passWord;
     BOOL isOpen;
     BOOL isLoginOperation;
@@ -69,11 +71,12 @@
     
     NSMutableArray*turnSockets;
 }
-@property (nonatomic,weak ) id<ChatDelegate> chatDelegate;
+@property (nonatomic,assign ) id<ChatDelegate> chatDelegate;
 
 @property (nonatomic,assign ) BOOL islogin;
-@property (nonatomic,strong ) NSString* loginUserStr;
+@property (nonatomic,retain ) NSString* loginUserStr;
 @property (nonatomic,readonly) XMPPStream* xmppStream;
+@property (nonatomic,readonly) RoomService* roomService;
 @property (nonatomic, strong, readonly) XMPPReconnect *xmppReconnect;
 @property (nonatomic, strong, readonly) XMPPRoster *xmppRoster;
 @property (nonatomic, strong, readonly) XMPPRosterCoreDataStorage *xmppRosterStorage;
@@ -86,7 +89,7 @@
 
 @property(nonatomic,strong,readonly) XMPPMUC *xmppMUC;
 
-@property(nonatomic,weak) id<XMPPIMActorDelegate> delegate;
+@property(nonatomic,assign) id<XMPPIMActorDelegate> delegate;
 
 -(id)initWithDelegate:(id<XMPPIMActorDelegate>) delegate;
 
@@ -112,11 +115,14 @@
 
 -(void)findFriendsList;
 
--(RectangleChat*)fetchRectangleChatFromJid:(NSString*)userJid isGroup:(BOOL)isGroup;
 
--(void)newRectangleMessageNumberAdd:(NSString*)receiverJid addOrResetZero:(BOOL)addOrResetZero isGroup:(BOOL)isGroup;
+-(MessageEntity*)fetchMessageFromUqID:(NSString*)uqID messageId:(NSString*)messageId;
+-(RectangleChat*)fetchRectangleChatFromJid:(NSString*)messageId isGroup:(BOOL)isGroup;
 
--(void)newRectangleMessage:(NSString*)receiverJid name:(NSString*)name content:(NSString*)content contentType:(RectangleChatContentType)contentType isGroup:(BOOL)isGroup;
+-(void)newRectangleMessage:(NSString*)messageId name:(NSString*)name content:(NSString*)content contentType:(RectangleChatContentType)contentType isGroup:(BOOL)isGroup createrJid:(NSString*)createrJid;
+
+
+-(GroupRoomUserEntity*)fetchGroupRoomUser:(NSString*)roomId memberId:(NSString*)memberId;
 
 -(void)addGroupRoomMember:(NSString*)roomId memberId:(NSString*)memberId sex:(NSString*)sex status:(NSString*)status username:(NSString*)username;
 

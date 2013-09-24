@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8">
+<title></title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0,user-scalable=no,target-densitydpi=low-dpi">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta content="black" name="apple-mobile-web-app-status-bar-style" />
+<meta name="description" content="">
+<meta name="author" content="Gorphen Su">
+<!-- Le styles -->
+
+<link href="css/main.css" rel="stylesheet">
+
+<script type="text/javascript" src="../cordova.js"></script>
+</head>
+<body>
+<header>
+  <div class="logo_content">
+		<img id="logo" src="img/logo.png"/>
+	</div>
+	<div id="setting_btn" class="setting_content">
+		<img src="img/set.png"/>
+	</div>
+</header>
+<div class="content">
+	<!-- 天气 -->
+  <div class="weather_content">
+  	<div class="degree">
+  		28
+  	</div>
+  	<div class="circle">
+  		°
+  	</div>
+  	<div class="range">
+  		25°- 31°
+  	</div>
+  	<div class="more">
+  		广州&nbsp;阴转小雨&nbsp;7月12日&nbsp;周五
+  	</div>
+  </div>
+
+
+
+  <!--搜索-->
+  <div class="search_content">
+  	<div class="search_input_content">
+  		<input id="search_input" type="text" placeholder="输入机尾号、航班号"/>
+  		<button id="search_btn">搜索</button>
+  	</div>
+  </div>
+
+  <div id="slider" class="mainContent swipe">
+    <div id="swipe" class="swipe-wrap">
+       
+    </div>
+  </div>
+</div>
+<nav>
+    <ul id='position'>
+     <!--  <li class='on'></li>
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li> -->
+    </ul>
+</nav>
+
+</body>
+<script id="module_div_ul" type="text/html">
+
+  <li class="module_li" identifier="<%=identifier%>"  moduleType="<%=moduleType%>">
+    
+    <div class="module_li_img">
+        <img src="<%=icon%>" alt="" onerror="this.src='img/default_icon2.png'">
+        <div class="module_Tips" moduletype="<%=moduleType%>" identifier="<%=identifier%>"  <%if(msgCount!==0  && moduleType ==="main"){%>style="display:inline"<%}else{%>style="display:none"<%}%>><%=msgCount%>
+			</div>
+    </div>
+        
+    </div>
+    <div class="module_li_titlename">
+      <%=name%>
+    </div>
+  </li>
+</script>
+<script src="vendor/zepto/zepto.js"></script>
+<!-- <script src="vendor/zepto/touch.js"></script> -->
+<script src="vendor/underscore-min.js"></script>
+<script src="vendor/swipe.js"></script>
+<script type="text/javascript" src="vendor/fastclick/fastclick.js"></script>
+<script src="js/util.js"></script>
+<script src="js/main.js"></script>
+
+
+
+ <!-- <ul id="myul" class="scrollContent"> -->
+          
+<!-- 
+          <li class="module_li">
+            <div class="module_li_img">
+              <img src="img/newsletter.png" />
+              <div class="module_Tips">
+                 0
+              </div>
+            </div>
+            <div class="module_li_titlename">
+                  性能手册资料
+            </div>
+          </li>
+      -->
+
+      <!--   </ul> -->
+
+   <!--    <div class="page_div">
+        <ul id="myul1" class="scrollContent">
+          <li class="module_li">
+            <div class="module_li_img">
+              <img src="img/newsletter.png" />
+              <div class="module_Tips">
+                 0
+              </div>
+            </div>
+            <div class="module_li_titlename">
+                  111111
+            </div>
+          </li>
+          <li class="module_li">
+            <div class="module_li_img">
+              <img src="img/newsletter.png" />
+              <div class="module_Tips">
+                 0
+              </div>
+            </div>
+            <div class="module_li_titlename">
+                  性能手册资料
+            </div>
+          </li>
+          <li class="module_li">
+            <div class="module_li_img">
+              <img src="img/newsletter.png" />
+              <div class="module_Tips">
+                 0
+              </div>
+            </div>
+            <div class="module_li_titlename">
+                  性能手册资料
+            </div>
+          </li>
+          <li class="module_li">
+            <div class="module_li_img">
+              <img src="img/newsletter.png" />
+              <div class="module_Tips">
+                 0
+              </div>
+            </div>
+            <div class="module_li_titlename">
+                  性能手册资料
+            </div>
+          </li>
+          <li class="module_li">
+            <div class="module_li_img">
+              <img src="img/newsletter.png" />
+              <div class="module_Tips">
+                 0
+              </div>
+            </div>
+            <div class="module_li_titlename">
+                  性能手册资料
+            </div>
+          </li>
+          <li class="module_li">
+            <div class="module_li_img">
+              <img src="img/newsletter.png" />
+              <div class="module_Tips">
+                 0
+              </div>
+            </div>
+            <div class="module_li_titlename">
+                  性能手册资料
+            </div>
+          </li>
+          <li class="module_li">
+            <div class="module_li_img">
+              <img src="img/newsletter.png" />
+              <div class="module_Tips">
+                 0
+              </div>
+            </div>
+            <div class="module_li_titlename">
+                  性能手册资料
+            </div>
+          </li>
+          <li class="module_li">
+            <div class="module_li_img">
+              <img src="img/newsletter.png" />
+              <div class="module_Tips">
+                 0
+              </div>
+            </div>
+            <div class="module_li_titlename">
+                  性能手册资料
+            </div>
+          </li>
+          <li class="module_li">
+            <div class="module_li_img">
+              <img src="img/newsletter.png" />
+              <div class="module_Tips">
+                 0
+              </div>
+            </div>
+            <div class="module_li_titlename">
+                  性能手册资料
+            </div>
+          </li>
+
+        </ul>
+
+      </div> -->
+
+      
+
+
+</html>

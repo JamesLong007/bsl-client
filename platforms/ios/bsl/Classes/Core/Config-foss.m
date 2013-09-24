@@ -2,6 +2,7 @@ NSString* const kServerURLString = @"http://115.28.1.119:18860";
 NSString* const kServerLoginURLString = @"http://115.28.1.119:18860/system/api/system/mobile/accounts/login";
 //NSString* const kServerURLString = @"http://10.108.68.136:9000";
 NSString* const  kXMPPHost=@"115.28.0.60";
+NSString* const  kXMPPGroupHost=@"115.28.0.60:8081";
 NSString* const  kXMPPPushHost =@"115.28.0.60";
 NSString* const  kXMPPDomin=@"snda-192-168-2-32";
 NSString* const  kXMPPPushDomin=@"csair.cube.openfire.test";

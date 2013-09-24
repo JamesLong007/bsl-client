@@ -96,6 +96,7 @@ static NSString *const XMPPMUCOwnerNamespace = @"http://jabber.org/protocol/muc#
 **/
 - (void)joinRoomUsingNickname:(NSString *)desiredNickname history:(NSXMLElement *)history;
 - (void)joinRoomUsingNickname:(NSString *)desiredNickname history:(NSXMLElement *)history password:(NSString *)passwd;
+
 - (BOOL)preJoinWithNickname:(NSString *)nickname;
 /**
  * There are two ways to configure a room.

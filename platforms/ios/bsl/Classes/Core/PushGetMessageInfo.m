@@ -22,11 +22,12 @@
     
     if (token && [token length] > 0 ) {
         HTTPRequest * request = [[HTTPRequest alloc]initWithURL:[NSURL URLWithString:requestUrl]];
+        __block HTTPRequest* __request=request;
         [request setRequestMethod:@"GET"];
         [request setCompletionBlock:^{
             NSLog(@"获取推送信息完成");
-            if (request.responseStatusCode != 500) {
-                NSData *data = [request responseData];
+            if (__request.responseStatusCode != 500) {
+                NSData *data = [__request responseData];
                 NSMutableArray * messageArray = [data objectFromJSONData];
                 if ([messageArray count]>0) {
                     //FMDB 事务

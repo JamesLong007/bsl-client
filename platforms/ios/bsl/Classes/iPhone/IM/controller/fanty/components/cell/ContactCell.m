@@ -29,6 +29,7 @@
         
         nicknameLabel=[[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(imageView.frame)+9.0f, 0.0f, 300.0f-CGRectGetMaxX(imageView.frame)-9.0f, CELL_HEIGHT)];
         nicknameLabel.numberOfLines=1;
+        nicknameLabel.backgroundColor=[UIColor clearColor];
         nicknameLabel.textColor=[UIColor blackColor];
         nicknameLabel.font=[UIFont fontWithName:@"Helvetica" size:16.0f];
         
@@ -74,6 +75,11 @@
         imageView.frame=CGRectMake(10.0f, 10.0f, 37.0f,37.0f);
         nicknameLabel.frame=CGRectMake(CGRectGetMaxX(imageView.frame)+9.0f, 0.0f, 300.0f-CGRectGetMaxX(imageView.frame)-9.0f, CELL_HEIGHT);
     }
+
+    
+    CGRect rect=lineView.frame;
+    rect.size.width=self.frame.size.width;
+    lineView.frame=rect;
 
 }
 

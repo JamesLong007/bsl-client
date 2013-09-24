@@ -12,12 +12,15 @@
 
 @interface MessageEntity : NSManagedObject
 
+@property(nonatomic,strong) NSString* uqID;
+@property(nonatomic,strong) NSString* messageId;
+@property (nonatomic, strong) NSString * sendUser;
+@property(nonatomic,strong) NSString* receiveUser;
+
 @property (nonatomic, strong) NSString * content;
 @property (nonatomic, strong) NSNumber * flag_sended;
 @property (nonatomic, strong) NSDate   * sendDate;
 @property (nonatomic, strong) NSNumber * flag_readed;
-@property (nonatomic, strong) NSString * receiver;
-@property (nonatomic, strong) NSString * sendUser;
 @property (nonatomic, strong) NSString * type;
 @property (nonatomic, strong) NSString * statue;
 @property (nonatomic, strong) NSString * fileId;

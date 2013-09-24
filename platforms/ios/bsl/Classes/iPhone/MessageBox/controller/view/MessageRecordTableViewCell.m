@@ -117,11 +117,11 @@
     //一行高度
     CGFloat oneLineHeight = [_alertLabel.text sizeWithFont:_alertLabel.font
                                                   forWidth:CGRectGetWidth(_alertLabel.frame)
-                                             lineBreakMode:UILineBreakModeTailTruncation].height;
+                                             lineBreakMode:NSLineBreakByTruncatingTail].height;
     //多行高度
     CGFloat multiLineHeight = [_alertLabel.text sizeWithFont:_alertLabel.font
                                            constrainedToSize:CGSizeMake(CGRectGetWidth(_alertLabel.frame), 99999)
-                                               lineBreakMode:UILineBreakModeTailTruncation].height;
+                                               lineBreakMode:NSLineBreakByTruncatingTail].height;
     //重设caption高度
     CGFloat finalCaptionHeight = (_alertLabel.numberOfLines == 1) ? oneLineHeight : multiLineHeight;
     

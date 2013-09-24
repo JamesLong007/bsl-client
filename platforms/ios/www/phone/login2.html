@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8">
+<title></title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0,user-scalable=no,target-densitydpi=low-dpi">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+<meta content="black" name="apple-mobile-web-app-status-bar-style" />
+<meta name="description" content="">
+<meta name="author" content="Gorphen Su">
+<!-- Le styles -->
+
+<link href="css/login.css" rel="stylesheet">
+<script type="text/javascript" src="../cordova.js"></script>
+</head>
+<body>
+<div class="login_content">
+  <div class="title">
+    移动运行网
+  </div>
+
+  <div class="user_content">
+    <div class="username_content">
+      <div class="username_img">
+         <img src="img/username.gif"/>
+      </div>
+      <input id="username"type="text" placeholder="用户"/>
+    </div>
+
+    <div class="divide"></div>
+
+    <div class="password_content">
+       <div class="password_img">
+        <img src="img/password.gif"/>
+      </div>
+      <input id="password" type="password" placeholder="密码"/>
+    </div>
+  </div>
+  <div class="remember_content">
+    <div class="rememberMe">
+        <input id="isRemember" type="checkbox" value="true">
+        <span style="display: block;margin-top:-23px;margin-left: 30px;">记住账号</span>
+    </div>
+    <div class="forget_content">忘记密码 ></div>
+    
+  </div>
+  <div class="login_btn_content">
+      <button id="login_btn">登录</button>
+  </div>
+</div>
+<div class="bottom_content">
+    <img src="img/bottom.gif"/>
+  </div>
+</body>
+</script>
+<script src="vendor/zepto/zepto.js"></script>
+<script src="vendor/zepto/touch.js"></script>
+<script src="vendor/underscore-min.js"></script>
+<script type="text/javascript" src="vendor/fastclick/fastclick.js"></script>
+<script src="js/login.js"></script>
+<!--<script src="http://10.108.1.110:8888/target/target-script-min.js#anonymous"></script>-->
+</html>

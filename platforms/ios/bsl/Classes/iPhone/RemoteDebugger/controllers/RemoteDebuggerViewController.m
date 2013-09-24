@@ -170,7 +170,7 @@
     }didErrorBlock:^(){
     }];
 
-    [self.navigationController pushFadeViewController:aCubeWebViewController];
+    [self.navigationController pushViewController:aCubeWebViewController animated:YES];
 }
 
 #pragma mark  inputfield  delegate

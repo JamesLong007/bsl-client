@@ -102,7 +102,7 @@
     
     UILabel *messageCountLabel = [[UILabel alloc] initWithFrame:CGRectMake(1,0,numSize.width>25? numSize.width:25, 25)];
     
-    [messageCountLabel setTextAlignment:UITextAlignmentCenter];
+    [messageCountLabel setTextAlignment:NSTextAlignmentCenter];
     
     [messageCountLabel setTextColor:[UIColor whiteColor]];
     
@@ -159,7 +159,7 @@
     
     UILabel *messageCountLabel = [[UILabel alloc] initWithFrame:CGRectMake(1,0,numSize.width>25? numSize.width:25, 25)];
     
-    [messageCountLabel setTextAlignment:UITextAlignmentCenter];
+    [messageCountLabel setTextAlignment:NSTextAlignmentCenter];
     
     [messageCountLabel setTextColor:[UIColor whiteColor]];
     
@@ -189,7 +189,7 @@
         
         UILabel *unReadmessageCountLabel = [[UILabel alloc] initWithFrame:CGRectMake(1,0,unReadnumSize.width>25? unReadnumSize.width:25, 25)];
         
-        [unReadmessageCountLabel setTextAlignment:UITextAlignmentCenter];
+        [unReadmessageCountLabel setTextAlignment:NSTextAlignmentCenter];
         
         [unReadmessageCountLabel setTextColor:[UIColor redColor]];
         

@@ -17,8 +17,9 @@
 @synthesize delegate;
 @synthesize selectedIndex;
 - (id)initWithFrame:(CGRect)frame{
-    if(frame.size.height<1)
-        frame.size.height=40.0f;
+    if(frame.size.height<1){
+        frame.size.height=50.0f;
+    }
     self = [super initWithFrame:frame];
     if (self) {
         self.userInteractionEnabled=YES;
@@ -32,14 +33,11 @@
         UIView* lineView=[[UIView alloc] initWithFrame:CGRectMake(0.0f, frame.size.height-1.0f, frame.size.width, 1.0f)];
         lineView.backgroundColor=[UIColor colorWithRed:220.0f/255.0f green:220.0f/255.0f blue:220.0f/255.0f alpha:1.0f];
         [self addSubview:lineView];
-
-        
         
         labelList=[[NSMutableArray alloc] initWithCapacity:2];
     }
     return self;
 }
-
 
 -(void)setTabNameArray:(NSArray*)array{
     [labelList makeObjectsPerformSelector:@selector(removeFromSuperview)];

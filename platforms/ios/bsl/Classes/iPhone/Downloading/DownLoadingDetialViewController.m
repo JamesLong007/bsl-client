@@ -178,15 +178,16 @@ static const NSString *const kLoadIconOperationKey = @"kLoadIconOperationKey";
     self.iconImage.badgeView.hidden = YES;
     
     HTTPRequest* request = [HTTPRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@%@/%@/%d%@?appKey=%@",kServerURLString,kURL_PATH1,self.identifier,self.curCubeModlue.build,kURL_PATH2, kAPPKey]]];
-    
+    __block HTTPRequest*  __request=request;
+
 
     [request setCompletionBlock:^{
-        [request setFailedBlock:nil];
-        [self getResult:request];
+        [__request setFailedBlock:nil];
+        [self getResult:__request];
     }];
     [request setFailedBlock:^{
-        [request setCompletionBlock:nil];
-        [self getFailMessage:request];
+        [__request setCompletionBlock:nil];
+        [self getFailMessage:__request];
     }];
     
     [[DownloadManager instance] addOperation:request forIdentifier:kLoadIconOperationKey];

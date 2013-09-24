@@ -19,6 +19,7 @@
 #import "AutoShowRecord.h"
 #import "FMDBManager.h"
 #import "FMDatabaseQueue.h"
+#import "HTTPRequest.h"
 
 #define SHOW_DETAILVIEW  @"SHOW_DETAILVIEW"  //展示模块
 
@@ -30,7 +31,7 @@
 @property (nonatomic,strong)  UIViewController * detailController;
 @property (nonatomic,strong)  UIViewController * mainController;
 @property (nonatomic,strong)  UIView* detailView;
-@property (copy, nonatomic) NSString *selectedModule;
+@property (strong, nonatomic) NSString *selectedModule;
 
 @end
 
@@ -61,13 +62,15 @@
         
         if (!skinView) {
             //读取文件信息
-            NSURL* documentUrl =  [NSFileManager applicationDocumentsDirectory];
-            NSURL* fileUrl = [documentUrl URLByAppendingPathComponent:@"www/pad/theme/theme.json"];
-            NSData* data = [[NSData alloc]initWithContentsOfURL:fileUrl];
-            
-            NSArray *arr = ( NSArray *)[data   mutableObjectFromJSONData ];
-            skinView = [[SkinView alloc]initWithActivityItems:arr];
-            skinView.delegate = self;
+            @autoreleasepool {
+                NSURL* documentUrl =  [NSFileManager applicationDocumentsDirectory];
+                NSURL* fileUrl = [documentUrl URLByAppendingPathComponent:@"www/pad/theme/theme.json"];
+                NSData* data = [[NSData alloc]initWithContentsOfURL:fileUrl];
+                
+                NSArray *arr = ( NSArray *)[data   mutableObjectFromJSONData ];
+                skinView = [[SkinView alloc]initWithActivityItems:arr];
+                skinView.delegate = self;                
+            }
         }
         
         aCubeWebViewController  = [[CubeWebViewController alloc] init];
@@ -442,7 +445,8 @@
     
     if (alertView.tag == 1 && buttonIndex== 0 ) {
         NSUserDefaults* userDefaults = [NSUserDefaults standardUserDefaults];
-        HTTPRequest * request = [[HTTPRequest alloc]initWithURL:[NSURL URLWithString:[ServerAPI urlForlogout:[userDefaults objectForKey:@"token"]]]];
+        
+        HTTPRequest* request=[HTTPRequest requestWithURL:[NSURL URLWithString:[ServerAPI urlForlogout:[userDefaults objectForKey:@"token"]]]];
         [request startAsynchronous];
         [self logout];
     }
@@ -450,6 +454,8 @@
 
 -(void)logout{
     [(AppDelegate *)[UIApplication sharedApplication].delegate showLoginView];
+    [self.presentedViewController dismissViewControllerAnimated:NO completion:^{}];
+//    [self dismissViewControllerAnimated:NO completion:^{}];
 }
 
 
@@ -634,7 +640,7 @@
     frame.size.width =CGRectGetHeight(self.view.frame)/2+2;
     frame.size.height= CGRectGetWidth(self.view.frame);
     
-    __weak CubeWebViewController *bCubeWebViewController  = [[CubeWebViewController alloc] init];
+    __block CubeWebViewController *bCubeWebViewController  = [[CubeWebViewController alloc] init];
     bCubeWebViewController.title = module.name;
     [bCubeWebViewController loadWebPageWithModule:module  frame:frame  didFinishBlock: ^(){
         //如果webView加载成功  这显示放大缩小按钮

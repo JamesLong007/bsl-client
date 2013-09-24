@@ -40,21 +40,23 @@
 @synthesize xmppvCardTempModule = _xmppvCardTempModule;
 @synthesize xmppvCardStorage = _xmppvCardStorage;
 @synthesize xmppMUC;
+@synthesize roomService;
 - (void)teardownStream
 {
+    [roomService tearDown];
 	[xmppStream removeDelegate:self];
     [xmppRoster removeDelegate:self];
     [xmppMUC removeDelegate:self];
-    
+
     
     [xmppReconnect         deactivate];
     [xmppRoster            deactivate];
     [xmppvCardTempModule deactivate];
     [xmppMUC deactivate];
-    
+
 	[xmppStream disconnect];
     
-    
+    roomService=nil;
     xmppStream = nil;
 	xmppReconnect = nil;
     xmppRoster = nil;
@@ -65,11 +67,9 @@
 }
 
 
-- (id)initWithDelegate:(id<XMPPIMActorDelegate>)ad
-{
+- (id)initWithDelegate:(id<XMPPIMActorDelegate>)ad{
     self = [super init];
-    if (self)
-    {
+    if (self){
         _delegate = ad;
         islogin = false;
         // [self localTest];
@@ -82,7 +82,6 @@
 
 -(void)dealloc{
     [self teardownStream];
-    
 }
 
 
@@ -100,8 +99,7 @@
 #pragma mark Private
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-- (void)setupXmppStream
-{
+- (void)setupXmppStream{
     //初始化XMPPStream
     if(!xmppStream){
         xmppStream = [[XMPPStream alloc] init];
@@ -132,11 +130,14 @@
         xmppReconnect = [[XMPPReconnect alloc] init];
         [xmppReconnect activate:xmppStream];
     }
-    
-    xmppMUC =[[XMPPMUC alloc]initWithDispatchQueue:dispatch_get_current_queue()];
-    [xmppMUC activate:xmppStream];
-    [xmppMUC addDelegate:self delegateQueue:dispatch_get_main_queue()];
-    
+
+    if(xmppMUC==nil){
+        xmppMUC =[[XMPPMUC alloc]initWithDispatchQueue:dispatch_get_current_queue()];
+        [xmppMUC activate:xmppStream];
+        [xmppMUC addDelegate:self delegateQueue:dispatch_get_main_queue()];
+    }
+    if(roomService==nil)
+        roomService=[[RoomService alloc] init];
     
     [self connect];
     [xmppReconnect setAutoReconnect:YES];
@@ -150,14 +151,12 @@
 
 
 
-- (void)goOnline
-{
+- (void)goOnline{
 	XMPPPresence *presence = [XMPPPresence presence]; // type="available" is implicit
 	[[self xmppStream] sendElement:presence];
 }
 
-- (void)goOffLine
-{
+- (void)goOffLine{
 	XMPPPresence *presence = [XMPPPresence presenceWithType:@"unavailable"];
 	[[self xmppStream] sendElement:presence];
 }
@@ -174,6 +173,7 @@
     if ([xmppStream isConnected]) {
         [self goOffLine];
         [xmppStream disconnect];
+        [roomService tearDown];
         [[NSNotificationCenter defaultCenter] postNotificationName:@"XMPPSTREAMIMOFFLINE" object:nil];
     }
 }
@@ -183,6 +183,8 @@
         [self goOffLine];
         
         [xmppStream disconnect];
+        [roomService tearDown];
+
     }
     islogin = NO;
     loginUserStr = @"";
@@ -195,6 +197,8 @@
         [self goOffLine];
         
         [xmppStream disconnect];
+        [roomService tearDown];
+
     }
     _persistentStoreCoordinator = nil;
     _managedObjectContext= nil;
@@ -205,10 +209,8 @@
 
 
 
-- (BOOL)connect
-{
-	if ([xmppStream isConnected])
-    {
+- (BOOL)connect{
+	if ([xmppStream isConnected]){
 		return YES;
 	}
     
@@ -229,16 +231,14 @@
     [xmppStream setHostName:kXMPPHost];
 	[xmppStream setHostPort:kXMPPPort];
     
-    if (userId == nil || passWord == nil)
-    {
+    if (userId == nil || passWord == nil){
         return NO;
         NSLog(@"xmppSever userName or pwd is nil");
     }
     
 	NSError *error = nil;
     
-	if (![xmppStream connect:&error])
-	{
+	if (![xmppStream connect:&error]){
 		return NO;
 	}
     
@@ -246,10 +246,11 @@
 }
 
 
-- (void)disconnect
-{
+- (void)disconnect{
 	[self goOffLine];
 	[xmppStream disconnect];
+    [roomService tearDown];
+
 }
 
 
@@ -258,47 +259,37 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-- (void)xmppStream:(XMPPStream *)sender socketDidConnect:(GCDAsyncSocket *)socket
-{
+- (void)xmppStream:(XMPPStream *)sender socketDidConnect:(GCDAsyncSocket *)socket{
 	
 }
 
-- (void)xmppStream:(XMPPStream *)sender willSecureWithSettings:(NSMutableDictionary *)settings
-{
+- (void)xmppStream:(XMPPStream *)sender willSecureWithSettings:(NSMutableDictionary *)settings{
 	
-	if (allowSelfSignedCertificates)
-	{
+	if (allowSelfSignedCertificates){
 		[settings setObject:[NSNumber numberWithBool:YES] forKey:(NSString *)kCFStreamSSLAllowsAnyRoot];
 	}
 	
-	if (allowSSLHostNameMismatch)
-	{
+	if (allowSSLHostNameMismatch){
 		[settings setObject:[NSNull null] forKey:(NSString *)kCFStreamSSLPeerName];
 	}
-	else
-	{
+	else{
 		NSString *expectedCertName = nil;
 		
 		NSString *serverDomain = @"localhost";
 		NSString *virtualDomain = [xmppStream.myJID domain];
 		
-		if ([serverDomain isEqualToString:@"talk.google.com"])
-		{
-			if ([virtualDomain isEqualToString:@"gmail.com"])
-			{
+		if ([serverDomain isEqualToString:@"talk.google.com"]){
+			if ([virtualDomain isEqualToString:@"gmail.com"]){
 				expectedCertName = virtualDomain;
 			}
-			else
-			{
+			else{
 				expectedCertName = serverDomain;
 			}
 		}
-		else if (serverDomain == nil)
-		{
+		else if (serverDomain == nil){
 			expectedCertName = virtualDomain;
 		}
-		else
-		{
+		else{
 			expectedCertName = serverDomain;
 		}
 		
@@ -328,11 +319,11 @@
 }
 
 
-- (void)xmppStreamDidAuthenticate:(XMPPStream *)sender
-{
+- (void)xmppStreamDidAuthenticate:(XMPPStream *)sender{
     
     NSLog(@"认证通过");
 	[self goOnline];
+    [roomService joinAllRoomService];
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"XMPPSTREAMIMONLINE" object:nil];
     //[self doRegisterPushService];
@@ -407,116 +398,139 @@
 - (void)xmppStream:(XMPPStream *)sender didReceiveError:(id)error{
     DDXMLNode *errorNode = (DDXMLNode *)error;
     //遍历错误节点
-    for(DDXMLNode *node in [errorNode children])
-    {
+    for(DDXMLNode *node in [errorNode children]){
         //若错误节点有【冲突】
-        if([[node name] isEqualToString:@"conflict"])
-        {
+        if([[node name] isEqualToString:@"conflict"]){
             dispatch_async(dispatch_get_main_queue(), ^{
                 [ShareAppDelegate showExit];
             });
+            return;
         }
     }
 }
 
-- (void)xmppStream:(XMPPStream *)sender didReceiveMessage:(XMPPMessage *)message
-{
+- (void)xmppStream:(XMPPStream *)sender didReceiveMessage:(XMPPMessage *)message{
+	
+    /*
+     <message xmlns="jabber:client" uqID="1379911680.768292" type="error" from="5fe7fc67-b892-4fec-8ec5-c1c2c0c99698@conference.snda-192-168-2-32" to="guodong@snda-192-168-2-32/Cube_Client11"><body>Abc</body><subject>text</subject><error code="404" type="wait"><recipient-unavailable xmlns="urn:ietf:params:xml:ns:xmpp-stanzas"></recipient-unavailable></error></message>
+     */
     
-	if ([message isChatMessageWithBody])
-	{
-        NSLog(@"message = %@",message);
-        NSString *msg = [[message elementForName:@"body"] stringValue];
-        NSString *from = [[message attributeForName:@"from"] stringValue];
-        NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    if ([message isChatMessageWithBody]){
         
-        [dict setObject:from forKey:@"sender"];
-        [dict setObject:msg forKey:@"msg"];
-        
-        NSRange range = [from rangeOfString:@"/"];
-        NSString * result = [from substringToIndex:range.location];
-        UserInfo * userInfo =[self fetchUserFromJid:result];
-        RectangleChatContentType rectangleChatContentType=RectangleChatContentTypeMessage;
-        if (userInfo != nil) {
-            if (userInfo.userMessageCount != nil ) {
-                userInfo.userMessageCount =[NSString stringWithFormat:@"%d",[userInfo.userMessageCount  intValue]+1];//[NSNumber numberWithInt:[userInfo.userMessageCount  intValue]+1];
+        @autoreleasepool {
+            NSLog(@"message = %@",message);
+            NSString *msg = [[message elementForName:@"body"] stringValue];
+            NSString *from = [[message attributeForName:@"from"] stringValue];
+            NSString *uqID = [[message attributeForName:@"uqID"] stringValue];
+            
+            
+            
+            NSRange range = [from rangeOfString:@"/"];
+            NSString * result = [from substringToIndex:range.location];
+            
+            UserInfo * userInfo =[self fetchUserFromJid:result];
+            RectangleChatContentType rectangleChatContentType=RectangleChatContentTypeMessage;
+            if (userInfo != nil) {
+                if (userInfo.userMessageCount != nil ) {
+                    userInfo.userMessageCount =[NSString stringWithFormat:@"%d",[userInfo.userMessageCount  intValue]+1];//[NSNumber numberWithInt:[userInfo.userMessageCount  intValue]+1];
+                }else{
+                    userInfo.userMessageCount = @"1" ;
+                    
+                }
+                if ([[[message elementForName:@"subject"] stringValue] isEqualToString:@"voice"]) {
+                    userInfo.userLastMessage = @"发送了一段语音给您";
+                    rectangleChatContentType=RectangleChatContentTypeVoice;
+                    
+                }
+                else if ([[[message elementForName:@"subject"] stringValue] isEqualToString:@"image"]) {
+                    rectangleChatContentType=RectangleChatContentTypeImage;
+                }
+                else{
+                    userInfo.userLastMessage = msg;
+                }
+                userInfo.userLastDate = [NSDate date];
+                
+                [self saveContext];
+                
             }else{
-                userInfo.userMessageCount = @"1" ;
+                //如果非好友 但是发送了信息 则添加进入到陌生人列表中
+                
+                userInfo = [NSEntityDescription insertNewObjectForEntityForName:@"UserInfo" inManagedObjectContext: self.managedObjectContext];
+                userInfo.userMessageCount =  @"1";
+                if ([[[message elementForName:@"subject"] stringValue] isEqualToString:@"voice"]) {
+                    userInfo.userLastMessage = @"发送了一段语音给您";
+                    
+                }
+                else if ([[[message elementForName:@"subject"] stringValue] isEqualToString:@"image"]) {
+                    rectangleChatContentType=RectangleChatContentTypeImage;
+                }
+                else{
+                    userInfo.userLastMessage = msg;
+                }
+                
+                userInfo.userLastDate = [NSDate date];
+                userInfo.userJid = result;
+                
+                NSRange range = [result rangeOfString:@"@"];
+                NSString * result1 = [result substringToIndex:range.location];
+                userInfo.userName = result1;
+                userInfo.userGroup = @"陌生人";
                 
             }
-            if ([[[message elementForName:@"subject"] stringValue] isEqualToString:@"voice"]) {
-                userInfo.userLastMessage = @"发送了一段语音给您";
-                rectangleChatContentType=RectangleChatContentTypeVoice;
-                
+            
+            RectangleChat* rectChat=[self fetchRectangleChatFromJid:result isGroup:NO];
+            if(rectChat==nil){
+                [self newRectangleMessage:result name:[userInfo name] content:msg contentType:rectangleChatContentType isGroup:NO createrJid:nil];
+                rectChat=[self fetchRectangleChatFromJid:result isGroup:NO];
             }
-            else if ([[[message elementForName:@"subject"] stringValue] isEqualToString:@"image"]) {
-                rectangleChatContentType=RectangleChatContentTypeImage;
-            }
-            else{
-                userInfo.userLastMessage = msg;
-            }
-            userInfo.userLastDate = [NSDate date];
+            
+            rectChat.updateDate=[NSDate date];
+            rectChat.content=msg;
+            int noReadMsgNumber=[rectChat.noReadMsgNumber intValue]+1;
+            rectChat.noReadMsgNumber=[NSNumber numberWithInt:noReadMsgNumber];
+            rectChat.contentType=[NSNumber numberWithInt:rectangleChatContentType];
             
             [self saveContext];
             
-        }else{
-            //如果非好友 但是发送了信息 则添加进入到陌生人列表中
+            //查询到数据库中未显示的消息条数
+            [MessageRecord createModuleBadge:@"com.foss.chat" num: [XMPPSqlManager getMessageCount]];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"module_badgeCount_change" object:self];
             
-            userInfo = [NSEntityDescription insertNewObjectForEntityForName:@"UserInfo" inManagedObjectContext: self.managedObjectContext];
-            userInfo.userMessageCount =  @"1";
-            if ([[[message elementForName:@"subject"] stringValue] isEqualToString:@"voice"]) {
-                userInfo.userLastMessage = @"发送了一段语音给您";
+            if(uqID==nil || [self fetchMessageFromUqID:uqID messageId:result]==nil){
+                MessageEntity *messageEntity = [NSEntityDescription insertNewObjectForEntityForName:@"MessageEntity" inManagedObjectContext: self.managedObjectContext];
                 
+                messageEntity.uqID=uqID;
+                messageEntity.messageId=result;
+                messageEntity.sendUser=result;
+                messageEntity.receiveUser=[[self.xmppStream myJID]bare];
+                
+                if ([ [[message elementForName:@"subject"] stringValue] isEqualToString:@"voice"]) {
+                    //将字符串转换成nsdata
+                    NSData* fileData =  [Base64 decodeString:msg];
+                    NSString *docDir = [NSSearchPathForDirectoriesInDomains(
+                                                                            NSDocumentDirectory,
+                                                                            NSUserDomainMask, YES) objectAtIndex: 0];
+                    NSURL* urlVoiceFile= [NSURL fileURLWithPath:[docDir stringByAppendingPathComponent: [NSString stringWithFormat: @"%.0f.%@", [NSDate timeIntervalSinceReferenceDate] * 1000.0, @"caf"]]];
+                    [fileData writeToURL:urlVoiceFile atomically:YES];
+                    messageEntity.content = [urlVoiceFile absoluteString];
+                    messageEntity.type = @"voice";
+                }
+                else if ([ [[message elementForName:@"subject"] stringValue] isEqualToString:@"image"]) {
+                    messageEntity.content = msg;
+                    messageEntity.type = @"image";
+                }else{
+                    messageEntity.content = msg;
+                    messageEntity.type = @"text";
+                }
+                messageEntity.flag_readed = [NSNumber numberWithBool:NO];
+                messageEntity.sendDate = [NSDate date];
+                messageEntity.receiveDate=[NSDate date];
+                
+                [messageEntity didSave];
             }
-            else if ([[[message elementForName:@"subject"] stringValue] isEqualToString:@"image"]) {
-                rectangleChatContentType=RectangleChatContentTypeImage;
-            }
-            else{
-                userInfo.userLastMessage = msg;
-            }
-            
-            userInfo.userLastDate = [NSDate date];
-            userInfo.userJid = result;
-            
-            NSRange range = [result rangeOfString:@"@"];
-            NSString * result1 = [result substringToIndex:range.location];
-            userInfo.userName = result1;
-            userInfo.userGroup = @"陌生人";
-            
         }
-        [self newRectangleMessage:result name:[userInfo name] content:msg contentType:rectangleChatContentType isGroup:NO];
-        [self newRectangleMessageNumberAdd:result addOrResetZero:YES isGroup:NO];
         
-        //查询到数据库中未显示的消息条数
-        [MessageRecord createModuleBadge:@"com.foss.chat" num: [XMPPSqlManager getMessageCount]];
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"module_badgeCount_change" object:self];
         
-        MessageEntity *messageEntity = [NSEntityDescription insertNewObjectForEntityForName:@"MessageEntity" inManagedObjectContext: self.managedObjectContext];
-        
-        if ([ [[message elementForName:@"subject"] stringValue] isEqualToString:@"voice"]) {
-            //将字符串转换成nsdata
-            NSData* fileData =  [Base64 decodeString:msg];
-            NSString *docDir = [NSSearchPathForDirectoriesInDomains(
-                                                                    NSDocumentDirectory,
-                                                                    NSUserDomainMask, YES) objectAtIndex: 0];
-            NSURL* urlVoiceFile= [NSURL fileURLWithPath:[docDir stringByAppendingPathComponent: [NSString stringWithFormat: @"%.0f.%@", [NSDate timeIntervalSinceReferenceDate] * 1000.0, @"caf"]]];
-            [fileData writeToURL:urlVoiceFile atomically:YES];
-            messageEntity.content = [urlVoiceFile absoluteString];
-            messageEntity.type = @"voice";
-        }
-        else if ([ [[message elementForName:@"subject"] stringValue] isEqualToString:@"image"]) {
-            messageEntity.content = msg;
-            messageEntity.type = @"image";
-        }else{
-            messageEntity.content = msg;
-            messageEntity.type = @"text";
-        }
-        messageEntity.sendUser = result;
-        messageEntity.receiver = [[self.xmppStream myJID]bare];
-        messageEntity.flag_readed = [NSNumber numberWithBool:NO];
-        messageEntity.sendDate = [NSDate date];
-        messageEntity.receiveDate=[NSDate date];
-        
-        [messageEntity didSave];
         
     }
 }
@@ -567,8 +581,22 @@
     return fetchedPerson;
 }
 
--(RectangleChat*)fetchRectangleChatFromJid:(NSString*)userJid isGroup:(BOOL)isGroup{
-    NSPredicate *predicate = [NSPredicate predicateWithFormat:[NSString stringWithFormat:@"receiverJid == \"%@\"",userJid]];
+-(MessageEntity*)fetchMessageFromUqID:(NSString*)uqID messageId:(NSString*)messageId{
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"uqID=%@ and messageId=%@",uqID,messageId];
+    NSFetchRequest *fetchRequest = [NSFetchRequest fetchRequestWithEntityName:@"MessageEntity"];
+    
+    [fetchRequest setPredicate:predicate];
+    
+    NSArray *fetchedPersonArray = [self.managedObjectContext executeFetchRequest:fetchRequest error:nil];
+    MessageEntity *messageEntity = nil;
+    if (fetchedPersonArray.count>0) {
+        messageEntity = [fetchedPersonArray objectAtIndex:0];
+    }
+    return messageEntity;
+}
+
+-(RectangleChat*)fetchRectangleChatFromJid:(NSString*)messageId isGroup:(BOOL)isGroup{
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:[NSString stringWithFormat:@"receiverJid = \"%@\" and isGroup=%d",messageId,isGroup?1:0]];
     NSFetchRequest *fetchRequest = [NSFetchRequest fetchRequestWithEntityName:@"RectangleChat"];
     [fetchRequest setPredicate:predicate];
     
@@ -580,56 +608,44 @@
     return fetchedPerson;
 }
 
--(void)newRectangleMessageNumberAdd:(NSString*)receiverJid addOrResetZero:(BOOL)addOrResetZero isGroup:(BOOL)isGroup{
-    AppDelegate *appDelegate = (AppDelegate*)[[UIApplication sharedApplication]delegate];
+-(void)newRectangleMessage:(NSString*)messageId name:(NSString*)name content:(NSString*)content contentType:(RectangleChatContentType)contentType isGroup:(BOOL)isGroup createrJid:(NSString*)createrJid{
     
-    RectangleChat* rectangleChat = [appDelegate.xmpp fetchRectangleChatFromJid:receiverJid isGroup:isGroup];
-    int number=[rectangleChat.noReadMsgNumber intValue];
-    if(addOrResetZero)
-        number++;
-    else
-        number=0;
-    rectangleChat.noReadMsgNumber=[NSNumber numberWithInt:number];
-    
-}
+    RectangleChat* chat=[self fetchRectangleChatFromJid:messageId isGroup:isGroup];
+    if(chat!=nil){
+        chat.content=content;
+        chat.contentType=[NSNumber numberWithInt:contentType];
+        chat.updateDate=[NSDate date];
+        chat.noReadMsgNumber=[NSNumber numberWithInt:0];
+        [chat didSave];
+    }
+    else{
+        AppDelegate *appDelegate = (AppDelegate*)[[UIApplication sharedApplication]delegate];
+        NSManagedObjectContext* context=[appDelegate xmpp].managedObjectContext;
 
--(void)newRectangleMessage:(NSString*)receiverJid name:(NSString*)name content:(NSString*)content contentType:(RectangleChatContentType)contentType isGroup:(BOOL)isGroup{
-    NSFetchRequest *fetchRequest = [NSFetchRequest fetchRequestWithEntityName:@"RectangleChat"];
-    fetchRequest.predicate = [NSPredicate predicateWithFormat:[NSString stringWithFormat:@"receiverJid == \"%@\"",receiverJid]];
-    NSError *error=nil;
-    
-    AppDelegate *appDelegate = (AppDelegate*)[[UIApplication sharedApplication]delegate];
-    NSManagedObjectContext* context=[appDelegate xmpp].managedObjectContext;
-    NSArray *fetchResult=[context executeFetchRequest:fetchRequest error:&error];
-    if(!error){
-        for(id obj in fetchResult){
-            [context deleteObject:obj];
-        }
+        NSManagedObject *newManagedObject=[NSEntityDescription insertNewObjectForEntityForName:@"RectangleChat" inManagedObjectContext:context];
+        if(!isGroup)
+            [newManagedObject setValue:[NSNumber numberWithInt:2] forKey:@"chatMemberCount"];
+        else
+            [newManagedObject setValue:[NSNumber numberWithInt:0] forKey:@"chatMemberCount"];
+        
+        [newManagedObject setValue:name forKey:@"name"];
+        
+        [newManagedObject setValue:content forKey:@"content"];
+        [newManagedObject setValue:[NSNumber numberWithInt:contentType] forKey:@"contentType"];
+        if([createrJid length]<1)
+            [newManagedObject setValue:[[[[ShareAppDelegate xmpp]xmppStream] myJID]bare] forKey:@"createrJid"];
+        else
+            [newManagedObject setValue:createrJid forKey:@"createrJid"];
+        
+        [newManagedObject setValue:messageId forKey:@"receiverJid"];
+        [newManagedObject setValue:[NSNumber numberWithBool:isGroup] forKey:@"isGroup"];
+        [newManagedObject setValue:[NSDate date] forKey:@"updateDate"];
+        [newManagedObject setValue:[NSNumber numberWithInt:0] forKey:@"noReadMsgNumber"];
     }
     
-    
-    
-    NSManagedObject *newManagedObject=[NSEntityDescription insertNewObjectForEntityForName:@"RectangleChat" inManagedObjectContext:context];
-    if(!isGroup)
-        [newManagedObject setValue:[NSNumber numberWithInt:2] forKey:@"chatMemberCount"];
-    else
-        [newManagedObject setValue:[NSNumber numberWithInt:0] forKey:@"chatMemberCount"];
-    
-    [newManagedObject setValue:name forKey:@"name"];
-    [newManagedObject setValue:content forKey:@"content"];
-    [newManagedObject setValue:[NSNumber numberWithInt:RectangleChatContentTypeMessage] forKey:@"contentType"];
-    [newManagedObject setValue:[[[[ShareAppDelegate xmpp]xmppStream] myJID]bare] forKey:@"createrJid"];
-    [newManagedObject setValue:receiverJid forKey:@"receiverJid"];
-    [newManagedObject setValue:[NSNumber numberWithBool:isGroup] forKey:@"isGroup"];
-    [newManagedObject setValue:[NSDate date] forKey:@"updateDate"];
-    [newManagedObject setValue:[NSNumber numberWithInt:0] forKey:@"noReadMsgNumber"];
-    
-    
-    
 }
 
--(void)addGroupRoomMember:(NSString*)roomId memberId:(NSString*)memberId sex:(NSString*)sex  status:(NSString*)status username:(NSString*)username{
-    
+-(GroupRoomUserEntity*)fetchGroupRoomUser:(NSString*)roomId memberId:(NSString*)memberId{
     AppDelegate *appDelegate = (AppDelegate*)[[UIApplication sharedApplication]delegate];
     NSManagedObjectContext* context=[appDelegate xmpp].managedObjectContext;
     
@@ -639,8 +655,23 @@
     NSError *error=nil;
     
     NSArray *fetchResult=[context executeFetchRequest:fetchRequest error:&error];
-    if([fetchResult count]>0)return;
+    if([fetchResult count]>0)return [fetchResult objectAtIndex:0];
+    return nil;
+}
+
+-(void)addGroupRoomMember:(NSString*)roomId memberId:(NSString*)memberId sex:(NSString*)sex  status:(NSString*)status username:(NSString*)username{
     
+    AppDelegate *appDelegate = (AppDelegate*)[[UIApplication sharedApplication]delegate];
+    NSManagedObjectContext* context=[appDelegate xmpp].managedObjectContext;
+
+    
+    NSFetchRequest *fetchRequest = [NSFetchRequest fetchRequestWithEntityName:@"GroupRoomUserEntity"];
+    fetchRequest.predicate = [NSPredicate predicateWithFormat:[NSString stringWithFormat:@"roomId = \"%@\" && jid=\"%@\"",roomId,memberId]];
+    NSError *error=nil;
+    
+    NSArray *fetchResult=[context executeFetchRequest:fetchRequest error:&error];
+    if([fetchResult count]>0)return;
+
     
     
     GroupRoomUserEntity *users  = (GroupRoomUserEntity *)[NSEntityDescription insertNewObjectForEntityForName:@"GroupRoomUserEntity" inManagedObjectContext:context];
@@ -649,7 +680,7 @@
     [users setValue:sex forKey:@"sex"];
     [users setValue:status forKey:@"statue"];
     [users setValue:username forKey:@"username"];
-    
+
 }
 
 
@@ -676,7 +707,7 @@
     //消息类型
     [iq addAttributeWithName:@"type" stringValue:@"get"];
     NSString *userId = [[[self xmppStream] myJID] bare];
-    //    u[serId =[userId stringByAppendingFormat:@"@snda-192-168-2-32"];
+//    u[serId =[userId stringByAppendingFormat:@"@snda-192-168-2-32"];
     [iq addAttributeWithName:@"from" stringValue:userId];
     
     NSXMLElement *query = [NSXMLElement elementWithName:@"query"];
@@ -695,81 +726,85 @@
         if ([items count]>0) {
             [[NSNotificationCenter defaultCenter] postNotificationName:@"STOPRREFRESHTABLEVIEW" object:nil];
             
-            for (int textIndex=0 ; textIndex < [items count] ; textIndex ++)
-            {
-                NSXMLElement *item=(NSXMLElement *)[items objectAtIndex:textIndex];
-                NSString *group=[[item elementForName:@"group"] stringValue];
-                if (group == nil || [group isEqualToString:@""]) {
-                    group = @"好友列表";
-                }
-                NSString * jidStr = [[item attributeForName:@"jid"] stringValue];
-                UserInfo *entity = [self fetchUserFromJid:jidStr];
-                if (entity != nil) {
-                    entity.userGroup = group;
-                    entity.userSubscription = [[item attributeForName:@"subscription"] stringValue];
-                    entity.userName = [[item attributeForName:@"name"] stringValue];
-                    //                    [self.managedObjectContext save:nil];
-                }else{
-                    NSManagedObject *newManagedObject = [NSEntityDescription insertNewObjectForEntityForName:@"UserInfo"inManagedObjectContext:self.managedObjectContext];
-                    [newManagedObject setValue:group forKey:@"userGroup"];
-                    [newManagedObject setValue:[[item attributeForName:@"name"] stringValue] forKey:@"userName"];
-                    [newManagedObject setValue:[[item attributeForName:@"jid"] stringValue] forKey:@"userJid"];
-                    [newManagedObject setValue:[[item attributeForName:@"subscription"] stringValue] forKey:@"userSubscription"];
-                    //                    [self.managedObjectContext save:nil];
+            
+            for (int textIndex=0 ; textIndex < [items count] ; textIndex ++){
+                @autoreleasepool {
+                    NSXMLElement *item=(NSXMLElement *)[items objectAtIndex:textIndex];
+                    NSString *group=[[item elementForName:@"group"] stringValue];
+                    if (group == nil || [group isEqualToString:@""]) {
+                        group = @"好友列表";
+                    }
+                    NSString * jidStr = [[item attributeForName:@"jid"] stringValue];
+                    UserInfo *entity = [self fetchUserFromJid:jidStr];
+                    if (entity != nil) {
+                        entity.userGroup = group;
+                        entity.userSubscription = [[item attributeForName:@"subscription"] stringValue];
+                        entity.userName = [[item attributeForName:@"name"] stringValue];
+                        //                    [self.managedObjectContext save:nil];
+                    }else{
+                        NSManagedObject *newManagedObject = [NSEntityDescription insertNewObjectForEntityForName:@"UserInfo"inManagedObjectContext:self.managedObjectContext];
+                        [newManagedObject setValue:group forKey:@"userGroup"];
+                        [newManagedObject setValue:[[item attributeForName:@"name"] stringValue] forKey:@"userName"];
+                        [newManagedObject setValue:[[item attributeForName:@"jid"] stringValue] forKey:@"userJid"];
+                        [newManagedObject setValue:[[item attributeForName:@"subscription"] stringValue] forKey:@"userSubscription"];
+                        //                    [self.managedObjectContext save:nil];
+                    }
                 }
             }
-            //发送通知列表可以刷新了
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"STARTRREFRESHTABLEVIEW" object:nil];
         }else{
-            
-            //remove by fanty
+
+            //remove by fanty 
             //[SVProgressHUD showErrorWithStatus:@"没有好友" ];
             
         }
+        //发送通知列表可以刷新了
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"STARTRREFRESHTABLEVIEW" object:nil];
+
     }else  if( [[[iq attributeForName:@"type"] stringValue] isEqualToString:@"set"]){
         //删除了好友 或者 增加好友
         NSArray *items = [[iq elementForName:@"query"] elementsForName:@"item"];
-        for (int textIndex=0 ; textIndex < [items count] ; textIndex ++)
-        {
-            NSXMLElement *item=(NSXMLElement *)[items objectAtIndex:textIndex];
-            if ([[[item attributeForName:@"subscription"] stringValue] isEqualToString: @"remove"]) {
-                
-                //先判断jid是否存在
-                NSManagedObjectContext *context =self.managedObjectContext;
-                NSString * jidStr = [[item attributeForName:@"jid"] stringValue];
-                
-                
-                UserInfo *entity = [self fetchUserFromJid:jidStr];
-                
-                [context deleteObject:entity];
-            }else if ([[[item attributeForName:@"subscription"] stringValue] isEqualToString: @"to"]) {
-                
-                NSString *group=[[item elementForName:@"group"] stringValue];
-                if (group == nil || [group isEqualToString:@""]) {
-                    group = @"好友列表";
-                }
-                
-                NSString * jidStr = [[item attributeForName:@"jid"] stringValue];
-                UserInfo *entity = [self fetchUserFromJid:jidStr];
-                if (entity != nil) {
-                    entity.userGroup = group;
-                    entity.userSubscription = [[item attributeForName:@"subscription"] stringValue];
-                    entity.userName = [[item attributeForName:@"name"] stringValue];
+        for (int textIndex=0 ; textIndex < [items count] ; textIndex ++){
+            @autoreleasepool {
+                NSXMLElement *item=(NSXMLElement *)[items objectAtIndex:textIndex];
+                if ([[[item attributeForName:@"subscription"] stringValue] isEqualToString: @"remove"]) {
                     
-                    [self.managedObjectContext save:nil];
+                    //先判断jid是否存在
+                    NSManagedObjectContext *context =self.managedObjectContext;
+                    NSString * jidStr = [[item attributeForName:@"jid"] stringValue];
                     
-                }else{
-                    NSManagedObject *newManagedObject = [NSEntityDescription insertNewObjectForEntityForName:@"UserInfo"inManagedObjectContext:self.managedObjectContext];
-                    [newManagedObject setValue:group forKey:@"userGroup"];
-                    [newManagedObject setValue:[[item attributeForName:@"name"] stringValue] forKey:@"userName"];
-                    [newManagedObject setValue:[[item attributeForName:@"jid"] stringValue] forKey:@"userJid"];
-                    [newManagedObject setValue:[[item attributeForName:@"subscription"] stringValue] forKey:@"userSubscription"];
                     
-                    // Save the context.
-                    NSError * error;
-                    if (![self.managedObjectContext save:&error]) {
-                        NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
-                        abort();
+                    UserInfo *entity = [self fetchUserFromJid:jidStr];
+                    
+                    [context deleteObject:entity];
+                }else if ([[[item attributeForName:@"subscription"] stringValue] isEqualToString: @"to"]) {
+                    
+                    NSString *group=[[item elementForName:@"group"] stringValue];
+                    if (group == nil || [group isEqualToString:@""]) {
+                        group = @"好友列表";
+                    }
+                    
+                    NSString * jidStr = [[item attributeForName:@"jid"] stringValue];
+                    UserInfo *entity = [self fetchUserFromJid:jidStr];
+                    if (entity != nil) {
+                        entity.userGroup = group;
+                        entity.userSubscription = [[item attributeForName:@"subscription"] stringValue];
+                        entity.userName = [[item attributeForName:@"name"] stringValue];
+                        
+                        [self.managedObjectContext save:nil];
+                        
+                    }else{
+                        NSManagedObject *newManagedObject = [NSEntityDescription insertNewObjectForEntityForName:@"UserInfo"inManagedObjectContext:self.managedObjectContext];
+                        [newManagedObject setValue:group forKey:@"userGroup"];
+                        [newManagedObject setValue:[[item attributeForName:@"name"] stringValue] forKey:@"userName"];
+                        [newManagedObject setValue:[[item attributeForName:@"jid"] stringValue] forKey:@"userJid"];
+                        [newManagedObject setValue:[[item attributeForName:@"subscription"] stringValue] forKey:@"userSubscription"];
+                        
+                        // Save the context.
+                        NSError * error;
+                        if (![self.managedObjectContext save:&error]) {
+                            NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
+                            abort();
+                        }
                     }
                 }
             }
@@ -778,7 +813,7 @@
         
         
     }else{
-        
+    
     }
     return YES;
     
@@ -875,14 +910,15 @@
 {
     if (alertView.tag==10009)
     {
-        NSString *rosterJID =[[[NSUserDefaults standardUserDefaults]objectForKey:@"rosterJID"] mutableCopy];
+        NSString *rosterJID =[[NSUserDefaults standardUserDefaults]objectForKey:@"rosterJID"];
+        XMPPJID* jid=[XMPPJID jidWithString:rosterJID];
         if (buttonIndex==0)
         {
-            [xmppRoster rejectPresenceSubscriptionRequestFrom:[XMPPJID jidWithString:rosterJID]];
+            [xmppRoster rejectPresenceSubscriptionRequestFrom:jid];
             
         }else if (buttonIndex==1)
         {
-            [xmppRoster acceptPresenceSubscriptionRequestFrom:[XMPPJID jidWithString:rosterJID] andAddToRoster:YES];
+            [xmppRoster acceptPresenceSubscriptionRequestFrom:jid andAddToRoster:YES];
             
         }
         [[NSUserDefaults standardUserDefaults]removeObjectForKey:@"rosterJID"];
@@ -899,10 +935,15 @@
 {
     NSUserDefaults* userDefaluts = [NSUserDefaults standardUserDefaults];
     NSString* loginUserStr1  = [userDefaluts objectForKey:@"LoginUser"];
+
     oldLoginUser = [userDefaluts objectForKey:@"oldLoginUser"];
     if (_managedObjectContext != nil  && loginUserStr1 != nil && [loginUserStr1 isEqualToString:oldLoginUser]) {
         return _managedObjectContext;
     }
+    
+
+    _managedObjectContext=nil;
+    
     [userDefaluts setValue:loginUserStr1 forKey:@"oldLoginUser"];
     [userDefaluts synchronize];
     NSPersistentStoreCoordinator *coordinator = [self persistentStoreCoordinator];
@@ -932,12 +973,11 @@
 
 // Returns the persistent store coordinator for the application.
 // If the coordinator doesn't already exist, it is created and the application's store added to it.
-- (NSPersistentStoreCoordinator *)persistentStoreCoordinator
-{
+- (NSPersistentStoreCoordinator *)persistentStoreCoordinator{
     NSUserDefaults * userDefaluts = [NSUserDefaults standardUserDefaults];
     
     NSString* version =  [userDefaluts objectForKey:@"XMPPDataVersion"];
-    NSString* loginUser = [userDefaluts objectForKey:@"LoginUser"];
+     NSString* loginUser = [userDefaluts objectForKey:@"LoginUser"];
     
     //oldLoginUser 用来判断数据切换的用户是否相同
     if (_persistentStoreCoordinator != nil && [oldLoginUser  isEqualToString:loginUser]) {
@@ -947,8 +987,7 @@
     NSURL *storeURL = [[self applicationDocumentsDirectory] URLByAppendingPathComponent: [NSString stringWithFormat:@"XMPPIM_%@.sqlite",loginUser]];
     NSError *error = nil;
     
-    
-    oldLoginUser = loginUser;
+    oldLoginUser = loginUser ;
     
     
     //先判断数据库是否需要做删除
@@ -1016,42 +1055,47 @@
 {
     NSLog(@"didReceiveRoomInvitation-[%@]=",message);
     
-    
-    NSXMLElement* element=[message elementForName:@"x"];
-    element=[element elementForName:@"invite"];
-    NSArray* attributes=[element attributes];
-    for(id attribute in attributes){
-        NSString* invoteFromeJid=[attribute stringValue];
-        if([invoteFromeJid rangeOfString:[[self xmppStream].myJID bare]].length<1){
-            int index=[invoteFromeJid rangeOfString:@"@"].location;
-            NSString* fromWho= [invoteFromeJid substringToIndex:index];
-            //from 群组 jid
-            //to   自己
-            
-            //from 是哪个创建的
-            
-            NSString *roomName =[NSString stringWithFormat:@"来自%@的会议室", fromWho];
-            NSString* content=[NSString stringWithFormat:@"%@邀请你加入群组", fromWho];
-            [self newRectangleMessage:message.fromStr name:roomName content:content contentType:RectangleChatContentTypeMessage isGroup:YES];
-            
-            
-            //添加对方进入成员
-            [self addGroupRoomMember:message.fromStr memberId:invoteFromeJid sex:@"" status:@"在线" username:fromWho];
-            
-            //添加自己
-            
-            NSString* name=[[self xmppStream].myJID bare];
-            
-            index=[name rangeOfString:@"@"].location;
-            name= [name substringToIndex:index];
-            
-            [self addGroupRoomMember:message.fromStr memberId:[[self xmppStream].myJID bare] sex:[[NSUserDefaults standardUserDefaults] valueForKey:@"sex"] status:@"在线" username:name];
-            
-            
-            
+
+    @autoreleasepool {
+        NSXMLElement* element=[message elementForName:@"x"];
+        element=[element elementForName:@"invite"];
+        NSArray* attributes=[element attributes];
+        for(id attribute in attributes){
+            NSString* invoteFromeJid=[attribute stringValue];
+            if([invoteFromeJid rangeOfString:[[self xmppStream].myJID bare]].length<1){
+                int index=[invoteFromeJid rangeOfString:@"@"].location;
+                NSString* fromWho= [invoteFromeJid substringToIndex:index];
+                //from 群组 jid
+                //to   自己
+                
+                //from 是哪个创建的
+                
+                NSString *roomName =[NSString stringWithFormat:@"来自%@的会议室", fromWho];
+                NSString* content=[NSString stringWithFormat:@"%@邀请你加入群组", fromWho];
+                [self newRectangleMessage:message.fromStr name:roomName content:content contentType:RectangleChatContentTypeMessage isGroup:YES createrJid:fromWho];
+                
+                
+                //添加对方进入成员
+                [self addGroupRoomMember:message.fromStr memberId:invoteFromeJid sex:@"" status:@"在线" username:fromWho];
+                
+                //添加自己
+                
+                NSString* name=[[self xmppStream].myJID bare];
+                
+                index=[name rangeOfString:@"@"].location;
+                name= [name substringToIndex:index];
+                
+                [self addGroupRoomMember:message.fromStr memberId:[[self xmppStream].myJID bare] sex:[[NSUserDefaults standardUserDefaults] valueForKey:@"sex"] status:@"在线" username:name];
+                
+                [self saveContext];
+                [roomService performSelector:@selector(joinRoomServiceWithRoomID:) withObject:message.fromStr afterDelay:2.0f];
+                
+                
+            }
+            break;
         }
-        return;
     }
+    
 }
 //for groupchat
 - (void)xmppMUC:(XMPPMUC *)sender didReceiveRoomInvitationDecline:(XMPPMessage *)message

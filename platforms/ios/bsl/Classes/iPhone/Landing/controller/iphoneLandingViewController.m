@@ -317,9 +317,9 @@
     UIButton *navRightButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 7, 43, 30)];
     //navRightButton.style = UIBarButtonItemStyleBordered;
     
-    [navRightButton setBackgroundImage:[UIImage imageNamed:@"nav_add_btn@2x.png"] forState:UIControlStateNormal];
+    [navRightButton setBackgroundImage:[UIImage imageNamed:@"nav_add_btn.png"] forState:UIControlStateNormal];
     
-    [navRightButton setBackgroundImage:[UIImage imageNamed:@"nav_add_btn_active@2x.png"] forState:UIControlStateSelected];
+    [navRightButton setBackgroundImage:[UIImage imageNamed:@"nav_add_btn_active.png"] forState:UIControlStateSelected];
     
     [navRightButton setTitle:@"管理" forState:UIControlStateNormal];
     
@@ -591,9 +591,9 @@
     UIButton *navRightButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 7, 43, 30)];
     //navRightButton.style = UIBarButtonItemStyleBordered;
     
-    [navRightButton setBackgroundImage:[UIImage imageNamed:@"nav_add_btn@2x.png"] forState:UIControlStateNormal];
+    [navRightButton setBackgroundImage:[UIImage imageNamed:@"nav_add_btn.png"] forState:UIControlStateNormal];
     
-    [navRightButton setBackgroundImage:[UIImage imageNamed:@"nav_add_btn_active@2x.png"] forState:UIControlStateSelected];
+    [navRightButton setBackgroundImage:[UIImage imageNamed:@"nav_add_btn_active.png"] forState:UIControlStateSelected];
     
     [navRightButton setTitle:@"管理" forState:UIControlStateNormal];
     
@@ -953,9 +953,9 @@
     UIButton *navRightButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 7, 43, 30)];
     //navRightButton.style = UIBarButtonItemStyleBordered;
     
-    [navRightButton setBackgroundImage:[UIImage imageNamed:@"nav_add_btn@2x.png"] forState:UIControlStateNormal];
+    [navRightButton setBackgroundImage:[UIImage imageNamed:@"nav_add_btn.png"] forState:UIControlStateNormal];
     
-    [navRightButton setBackgroundImage:[UIImage imageNamed:@"nav_add_btn_active@2x.png"] forState:UIControlStateSelected];
+    [navRightButton setBackgroundImage:[UIImage imageNamed:@"nav_add_btn_active.png"] forState:UIControlStateSelected];
     
     [navRightButton setTitle:@"管理" forState:UIControlStateNormal];
     

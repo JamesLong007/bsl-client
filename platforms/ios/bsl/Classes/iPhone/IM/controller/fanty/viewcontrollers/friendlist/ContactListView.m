@@ -44,6 +44,8 @@ NSInteger contactListViewSort(id obj1, id obj2,void* context){
 -(void)getFriendsUserInfo;
 -(void)headerClick:(UIButton*)button;
 -(void)showLoadData;
+-(void)delayReloadTimeEvent;
+
 @end
 
 @implementation ContactListView
@@ -52,7 +54,7 @@ NSInteger contactListViewSort(id obj1, id obj2,void* context){
 - (id)initWithFrame:(CGRect)frame{
     self = [super initWithFrame:frame];
     if (self) {
-        selectedIndex=-1;
+        selectedIndex=0;
         isFirstLoadData=YES;
         self.userInteractionEnabled=YES;
         friendsListDict=[[NSMutableDictionary alloc] initWithCapacity:2];
@@ -65,7 +67,7 @@ NSInteger contactListViewSort(id obj1, id obj2,void* context){
         [fetchRequest setEntity:entity];
         [fetchRequest setFetchBatchSize:20];
         //排序
-        NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"userGroup" ascending:YES];
+        NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"userGroup" ascending:YES] ;
         NSSortDescriptor *sortDescriptor1 = [[NSSortDescriptor alloc] initWithKey:@"userStatue" ascending:NO];
         NSSortDescriptor *sortDescriptor2 = [[NSSortDescriptor alloc] initWithKey:@"userName" ascending:NO];
         
@@ -74,7 +76,6 @@ NSInteger contactListViewSort(id obj1, id obj2,void* context){
         
         fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:managedObjectContext sectionNameKeyPath:@"userGroup" cacheName:@"userGroup"];
         fetchedResultsController.delegate = self;
-        
         
         NSError *error = nil;
         if (![fetchedResultsController performFetch:&error]) {
@@ -99,18 +100,25 @@ NSInteger contactListViewSort(id obj1, id obj2,void* context){
         
         [[NSNotificationCenter defaultCenter] addObserver: self selector:@selector(starRefresh) name:@"STARTRREFRESHTABLEVIEW" object:nil];
 
+        [self delayReloadTimeEvent];
     }
     return self;
 }
 
 - (void)dealloc{
+    if([SVProgressHUD isVisible]){
+        [SVProgressHUD dismiss];
+    }
 
+    managedObjectContext=nil;
+    fetchedResultsController.delegate=nil;
+    fetchedResultsController=nil;
+    [laterReloadTimer invalidate];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     
     
     AppDelegate *del = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     del.xmpp.chatDelegate = nil;
-
 }
 
 -(NSDictionary*)friendsList{
@@ -127,7 +135,7 @@ NSInteger contactListViewSort(id obj1, id obj2,void* context){
             [SVProgressHUD showErrorWithStatus:@"即时通讯没有连接！"];
         }
         
-    }    
+    }
 }
 
 -(void)showLoadData{
@@ -135,14 +143,14 @@ NSInteger contactListViewSort(id obj1, id obj2,void* context){
     headerArray=nil;
     friendList=nil;
     if([searchText length]<1){
-        headerArray=[friendsListDict allKeys];
-        if(selectedIndex>-1){
+        headerArray=[friendsListDict allKeys] ;
+        if(selectedIndex>-1 && selectedIndex<[headerArray count]){
             NSString* key=[headerArray objectAtIndex:selectedIndex];
-            friendList=[friendsListDict objectForKey:key];
+            friendList=[friendsListDict objectForKey:key] ;
         }
     }
     else{
-        headerArray=[NSArray arrayWithObjects:@"搜索结果", nil];
+        headerArray=[NSArray arrayWithObjects:@"搜索结果", nil] ;
         NSMutableArray* list=[[NSMutableArray alloc] initWithCapacity:2];
         for(NSArray* array in [friendsListDict allValues]){
             for(UserInfo* userInfo in array){
@@ -193,15 +201,16 @@ NSInteger contactListViewSort(id obj1, id obj2,void* context){
                 userInfo.userSex = useSex;
             }
             
-            [managedObjectContext save:nil];
             dispatch_async(dispatch_get_main_queue(), ^{
-
+                [managedObjectContext save:nil];
+//                userArray=nil;
                 [self showLoadData];
                 isLoadingUserInfo=NO;
             });
         });
     }
     else{
+        userArray=nil;
         isLoadingUserInfo=NO;
     }
     
@@ -273,6 +282,27 @@ NSInteger contactListViewSort(id obj1, id obj2,void* context){
     [self showLoadData];
 }
 
+-(void)delayReloadTimeEvent{
+    [laterReloadTimer invalidate];
+    laterReloadTimer=nil;
+    [friendsListDict removeAllObjects];
+    
+    for(id<NSFetchedResultsSectionInfo> sectionInfo in [fetchedResultsController sections]){
+        NSString* key=NSLocalizedString([sectionInfo name],nil);
+        
+        NSMutableArray* array=[[NSMutableArray alloc] initWithCapacity:2];
+        for(UserInfo* info in [fetchedResultsController fetchedObjects]){
+            if([info.userGroup isEqualToString:key]){
+                [array addObject:info];
+            }
+        }
+        
+        NSArray* __array=[array sortedArrayUsingFunction:contactListViewSort context:nil];
+        [friendsListDict setObject:__array forKey:key];
+    }
+    [self showLoadData];
+}
+
 #pragma mark  catdelegate
 
 -(void)showFriends:(NSXMLElement*)element{
@@ -319,28 +349,8 @@ NSInteger contactListViewSort(id obj1, id obj2,void* context){
        atIndexPath:(NSIndexPath *)indexPath forChangeType:(NSFetchedResultsChangeType)type
       newIndexPath:(NSIndexPath *)newIndexPath{
     
-        switch(type) {
-            case NSFetchedResultsChangeInsert:
-            case NSFetchedResultsChangeUpdate:{
-                id<NSFetchedResultsSectionInfo> sectionInfo =[fetchedResultsController sections][[indexPath section]];
-                NSString* key=NSLocalizedString([sectionInfo name],nil);
-                
-                NSMutableArray* array=[[NSMutableArray alloc] initWithCapacity:2];
-                for(UserInfo* info in [fetchedResultsController fetchedObjects]){
-                    if([info.userGroup isEqualToString:key]){
-                        [array addObject:info];
-                    }
-                }
-                                
-                NSArray* __array=[array sortedArrayUsingFunction:contactListViewSort context:nil];
-                [friendsListDict setObject:__array forKey:key];
-                
-                if([headerArray count]<1){
-                    [self showLoadData];
-                }
-            }
-                break;
-        }
+    [laterReloadTimer invalidate];
+    laterReloadTimer=[NSTimer scheduledTimerWithTimeInterval:1.0f target:self selector:@selector(delayReloadTimeEvent) userInfo:nil repeats:NO];
 }
 
 
@@ -436,7 +446,7 @@ NSInteger contactListViewSort(id obj1, id obj2,void* context){
 -(UITableViewCell*)tableView:(UITableView *)__tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
     ContactCell *cell = (ContactCell*)[__tableView dequeueReusableCellWithIdentifier:@"cell"];
     if(cell == nil){
-        cell = [[ContactCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"cell"];
+        cell = [[ContactCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"cell"] ;
     }
     UserInfo* user=[friendList objectAtIndex:[indexPath row]];
     [cell headerUrl:@"" nickname:[user name]];
@@ -489,6 +499,16 @@ NSInteger contactListViewSort(id obj1, id obj2,void* context){
         [self.delegate contactListDidSearchShouldBeginEditing:self searchBar:searchBar];
     
     return YES;
+}
+
+- (void)searchBarTextDidBeginEditing:(UISearchBar *)__searchBar{
+    for(id cc in [__searchBar subviews]){
+        if([cc isKindOfClass:[UIButton class]])
+        {
+            UIButton *btn = (UIButton *)cc;
+            [btn setTitle:@"取消"  forState:UIControlStateNormal];
+        }
+    }
 }
 
 - (void)searchBar:(UISearchBar *)__searchBar textDidChange:(NSString *)searchText{

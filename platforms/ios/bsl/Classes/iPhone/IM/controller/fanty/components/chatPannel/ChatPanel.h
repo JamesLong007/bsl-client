@@ -41,4 +41,6 @@
 
 -(float)panelHeight;
 
+-(void)hideAllControlPanel;
+
 @end

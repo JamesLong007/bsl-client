@@ -20,4 +20,5 @@
 @dynamic updateDate;
 @dynamic noReadMsgNumber;
 @dynamic name;
+@dynamic isQuit;
 @end

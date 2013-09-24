@@ -102,14 +102,23 @@
     
     if (UI_USER_INTERFACE_IDIOM() ==  UIUserInterfaceIdiomPad ) {
         //添加关闭按钮
-        UIButton *navRightButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 7, 43, 30)];
-        [navRightButton setBackgroundImage:[UIImage imageNamed:@"nav_add_btn@2x.png"] forState:UIControlStateNormal];
-        [navRightButton setBackgroundImage:[UIImage imageNamed:@"nav_add_btn_active@2x.png"] forState:UIControlStateSelected];
-        [navRightButton setTitle:@"关闭" forState:UIControlStateNormal];
-        [[navRightButton titleLabel] setFont:[UIFont systemFontOfSize:13]];
-        [navRightButton addTarget:self action:@selector(closeSettingView) forControlEvents:UIControlEventTouchUpInside];
         
-        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:navRightButton];
+        if (UI_USER_INTERFACE_IDIOM() ==  UIUserInterfaceIdiomPad) {
+            self.navigationItem.rightBarButtonItem=[[UIBarButtonItem alloc] initWithTitle:@"关闭" style:UIBarButtonItemStyleBordered target:self action:@selector(closeSettingView)];
+        }
+        else{
+            UIButton *navRightButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 7, 43, 30)];
+            [navRightButton setBackgroundImage:[UIImage imageNamed:@"nav_add_btn.png"] forState:UIControlStateNormal];
+            [navRightButton setBackgroundImage:[UIImage imageNamed:@"nav_add_btn_active.png"] forState:UIControlStateSelected];
+            [navRightButton setTitle:@"关闭" forState:UIControlStateNormal];
+            [[navRightButton titleLabel] setFont:[UIFont systemFontOfSize:13]];
+            [navRightButton addTarget:self action:@selector(closeSettingView) forControlEvents:UIControlEventTouchUpInside];
+            
+            self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:navRightButton];
+
+            
+        }
+        
     }
     
 }
